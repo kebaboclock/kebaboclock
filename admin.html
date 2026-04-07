@@ -115,6 +115,7 @@
             display: flex;
             gap: .75rem;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         input[type="password"], input[type="text"] {
@@ -159,6 +160,13 @@
         }
         .btn-danger:hover { background: #c53030; }
 
+        .btn-outline {
+            background: transparent;
+            color: var(--orange);
+            border: 1px solid var(--border);
+        }
+        .btn-outline:hover { border-color: var(--orange); background: rgba(255,106,0,.06); }
+
         /* ── SECTION TITLE ── */
         .section-title {
             font-family: 'Righteous', cursive;
@@ -175,12 +183,174 @@
             background: var(--border);
         }
 
-        /* ── IMAGE GRID ── */
+        /* ── BULK UPLOAD ZONE ── */
+        .bulk-upload-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .bulk-upload-card h3 {
+            font-family: 'Righteous', cursive;
+            color: var(--orange);
+            font-size: 1.1rem;
+            margin-bottom: .5rem;
+        }
+
+        .bulk-upload-card p {
+            color: var(--muted);
+            font-size: .85rem;
+            margin-bottom: 1rem;
+        }
+
+        .bulk-drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color .2s, background .2s;
+            color: var(--muted);
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .bulk-drop-zone:hover, .bulk-drop-zone.drag-over {
+            border-color: var(--orange);
+            background: rgba(255,106,0,.06);
+            color: var(--orange);
+        }
+        .bulk-drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+        }
+        .bulk-drop-zone i { font-size: 2.5rem; margin-bottom: .75rem; display: block; }
+        .bulk-drop-zone .drop-text { font-size: 1rem; font-weight: 600; }
+        .bulk-drop-zone .drop-hint { font-size: .8rem; margin-top: .3rem; opacity: .7; }
+
+        /* Staged files list */
+        .staged-files {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            margin-bottom: 1rem;
+        }
+
+        .staged-file {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: .4rem .75rem;
+            font-size: .8rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .staged-file .remove-staged {
+            background: none;
+            border: none;
+            color: var(--red);
+            cursor: pointer;
+            font-size: .85rem;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .upload-actions {
+            display: flex;
+            gap: .75rem;
+            align-items: center;
+        }
+
+        .upload-progress {
+            flex: 1;
+            height: 6px;
+            background: var(--surface);
+            border-radius: 999px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .upload-progress .bar {
+            height: 100%;
+            background: var(--orange);
+            border-radius: 999px;
+            width: 0%;
+            transition: width .3s ease;
+        }
+
+        /* ── LOGO UPLOAD ── */
+        .logo-upload-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid var(--orange);
+            object-fit: cover;
+            background: var(--surface);
+        }
+
+        .logo-upload-info { flex: 1; min-width: 200px; }
+
+        .logo-upload-info h3 {
+            font-family: 'Righteous', cursive;
+            color: var(--orange);
+            font-size: 1.1rem;
+            margin-bottom: .3rem;
+        }
+
+        .logo-upload-info p {
+            color: var(--muted);
+            font-size: .82rem;
+            margin-bottom: .75rem;
+        }
+
+        .logo-drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: .75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color .2s, background .2s;
+            font-size: .82rem;
+            color: var(--muted);
+            position: relative;
+        }
+        .logo-drop-zone:hover, .logo-drop-zone.drag-over {
+            border-color: var(--orange);
+            background: rgba(255,106,0,.06);
+            color: var(--orange);
+        }
+        .logo-drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* ── IMAGE GRID (Reorder) ── */
         .image-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
         .image-card {
@@ -188,14 +358,24 @@
             border: 1px solid var(--border);
             border-radius: 14px;
             overflow: hidden;
-            transition: box-shadow .25s;
+            transition: box-shadow .25s, transform .15s;
+            cursor: grab;
+            user-select: none;
         }
         .image-card:hover { box-shadow: 0 8px 30px rgba(255,106,0,.15); }
+        .image-card.dragging {
+            opacity: .5;
+            transform: scale(.97);
+        }
+        .image-card.drag-over-card {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 2px var(--orange);
+        }
 
         .image-card .thumb-wrap {
             position: relative;
             background: #0a0a0a;
-            aspect-ratio: 16/9;
+            aspect-ratio: 16/10;
             overflow: hidden;
         }
 
@@ -206,78 +386,64 @@
             transition: opacity .3s;
         }
 
-        .image-card .no-image {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: var(--muted);
-            font-size: .85rem;
-            text-align: center;
-            gap: .5rem;
-        }
-        .image-card .no-image i { font-size: 2rem; color: var(--border); }
-
-        .status-pill {
-            position: absolute;
-            top: .6rem; right: .6rem;
-            font-size: .7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: .25rem .6rem;
-            border-radius: 999px;
-        }
-        .status-pill.live    { background: rgba(34,197,94,.2); border:1px solid var(--green); color:var(--green); }
-        .status-pill.missing { background: rgba(239,68,68,.15); border:1px solid var(--red); color:var(--red); }
-
         .image-card .card-body {
-            padding: 1rem;
+            padding: .75rem 1rem;
         }
 
         .image-card .card-label {
             font-family: 'Righteous', cursive;
             color: var(--orange);
-            font-size: 1rem;
-            margin-bottom: .3rem;
+            font-size: .9rem;
+            margin-bottom: .15rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .image-card .card-file {
-            font-size: .75rem;
+            font-size: .7rem;
             color: var(--muted);
-            margin-bottom: .9rem;
             word-break: break-all;
         }
 
-        /* upload zone */
-        .drop-zone {
-            border: 2px dashed var(--border);
-            border-radius: 8px;
-            padding: .9rem;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color .2s, background .2s;
-            font-size: .85rem;
-            color: var(--muted);
-            margin-bottom: .75rem;
-            position: relative;
-        }
-        .drop-zone:hover, .drop-zone.drag-over {
-            border-color: var(--orange);
-            background: rgba(255,106,0,.06);
-            color: var(--orange);
-        }
-        .drop-zone input[type="file"] {
+        .card-order-num {
             position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
-            width: 100%;
+            top: .5rem;
+            left: .5rem;
+            background: rgba(0,0,0,.75);
+            color: var(--orange);
+            font-family: 'Righteous', cursive;
+            font-size: .75rem;
+            padding: .2rem .5rem;
+            border-radius: 6px;
+            border: 1px solid rgba(255,106,0,.3);
         }
-        .drop-zone i { display: block; font-size: 1.4rem; margin-bottom: .35rem; }
 
-        .card-actions { display: flex; gap: .5rem; }
+        .card-actions-overlay {
+            position: absolute;
+            bottom: .5rem;
+            right: .5rem;
+            display: flex;
+            gap: .35rem;
+        }
+
+        .card-action-btn {
+            background: rgba(0,0,0,.7);
+            border: 1px solid rgba(255,255,255,.15);
+            color: #fff;
+            border-radius: 6px;
+            padding: .3rem .5rem;
+            font-size: .7rem;
+            cursor: pointer;
+            transition: background .2s, border-color .2s;
+        }
+        .card-action-btn:hover { background: rgba(255,106,0,.3); border-color: var(--orange); }
+        .card-action-btn.danger:hover { background: rgba(239,68,68,.3); border-color: var(--red); }
+
+        /* hidden file input for replace */
+        .replace-input {
+            display: none;
+        }
 
         /* ── TOAST ── */
         #toast-container {
@@ -351,10 +517,56 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ── SAVE ORDER BAR ── */
+        .save-order-bar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-top: 2px solid var(--orange);
+            padding: 1rem 2rem;
+            z-index: 200;
+            text-align: center;
+            animation: slide-up .3s ease;
+        }
+        .save-order-bar.visible { display: block; }
+
+        @keyframes slide-up {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+
+        .save-order-bar .bar-text {
+            color: var(--muted);
+            font-size: .85rem;
+            margin-bottom: .5rem;
+        }
+
         /* ── RESPONSIVE ── */
         @media (max-width: 500px) {
             main { padding: 1.5rem .75rem; }
             .input-row { flex-direction: column; }
+            .logo-upload-card { flex-direction: column; align-items: flex-start; }
+        }
+
+        /* ── CHECKBOX ── */
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin-top: .75rem;
+        }
+        .checkbox-row input[type="checkbox"] {
+            accent-color: var(--orange);
+            width: 16px;
+            height: 16px;
+        }
+        .checkbox-row label {
+            font-size: .82rem;
+            color: var(--muted);
+            cursor: pointer;
         }
     </style>
 </head>
@@ -383,7 +595,7 @@
         <p>
             Enter a <strong>fine-grained personal access token</strong> scoped to the
             <code>kebaboclock/kebaboclock</code> repo with <strong>Contents: Read &amp; Write</strong>
-            permission. The token is stored only in memory and never sent anywhere except the GitHub API.
+            permission.
         </p>
         <div class="input-row">
             <input type="password" id="token-input" placeholder="github_pat_…" autocomplete="off" spellcheck="false">
@@ -394,16 +606,73 @@
                 <i class="fas fa-times"></i> Disconnect
             </button>
         </div>
+        <div class="checkbox-row">
+            <input type="checkbox" id="remember-token" checked>
+            <label for="remember-token">Remember token in this browser</label>
+        </div>
         <p id="auth-hint" style="margin-top:.75rem;font-size:.8rem;"></p>
     </div>
 
     <!-- ── IMAGE MANAGER ── -->
     <div id="manager-section" style="display:none">
 
-        <div class="section-title"><i class="fas fa-images" style="color:var(--orange)"></i> Menu Images</div>
+        <!-- LOGO UPLOAD -->
+        <div class="section-title"><i class="fas fa-crown" style="color:var(--orange)"></i> Logo</div>
+        <div class="logo-upload-card">
+            <img class="logo-preview" id="logo-preview" src="Logo.png" alt="Current Logo">
+            <div class="logo-upload-info">
+                <h3>Upload Custom Logo</h3>
+                <p>Uploads to <code>imagesdep/logo.png</code>. The public site will use this logo if available.</p>
+                <div class="logo-drop-zone" id="logo-drop-zone">
+                    <input type="file" accept="image/*" onchange="handleLogoSelect(this)">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Click or drag to upload logo
+                </div>
+                <div style="margin-top:.5rem; display:flex; gap:.5rem;">
+                    <button class="btn btn-sm" id="logo-upload-btn" disabled onclick="uploadLogo()">
+                        <i class="fas fa-upload"></i> Upload Logo
+                    </button>
+                </div>
+            </div>
+        </div>
 
+        <!-- BULK UPLOAD -->
+        <div class="section-title"><i class="fas fa-cloud-upload-alt" style="color:var(--orange)"></i> Upload Images</div>
+        <div class="bulk-upload-card">
+            <h3>Bulk Upload Menu Images</h3>
+            <p>Select or drag multiple images at once. They will all be uploaded to the <code>imagesdep</code> folder.</p>
+            <div class="bulk-drop-zone" id="bulk-drop-zone">
+                <input type="file" accept="image/*" multiple onchange="handleBulkFiles(this.files)">
+                <i class="fas fa-images"></i>
+                <div class="drop-text">Drop images here or click to browse</div>
+                <div class="drop-hint">PNG, JPG, WebP — multiple files allowed</div>
+            </div>
+            <div class="staged-files" id="staged-files"></div>
+            <div class="upload-actions">
+                <button class="btn" id="bulk-upload-btn" disabled onclick="uploadAllStaged()">
+                    <i class="fas fa-upload"></i> Upload All
+                </button>
+                <button class="btn btn-outline btn-sm" id="clear-staged-btn" style="display:none" onclick="clearStaged()">
+                    <i class="fas fa-trash-alt"></i> Clear
+                </button>
+                <div class="upload-progress" id="upload-progress"><div class="bar" id="progress-bar"></div></div>
+            </div>
+        </div>
+
+        <!-- IMAGE ORDERING GRID -->
+        <div class="section-title"><i class="fas fa-th" style="color:var(--orange)"></i> Manage & Reorder Images</div>
+        <p style="color:var(--muted); font-size:.85rem; margin-bottom:1rem;">
+            Drag and drop cards to reorder. Use the buttons to replace or delete specific images.
+        </p>
         <div class="image-grid" id="image-grid">
             <!-- Cards injected by JS -->
+        </div>
+
+        <!-- SAVE ORDER BAR -->
+        <div class="save-order-bar" id="save-order-bar">
+            <div class="bar-text">You've changed the image order</div>
+            <button class="btn" onclick="saveOrder()"><i class="fas fa-save"></i> Save Order</button>
+            <button class="btn btn-outline btn-sm" style="margin-left:.5rem;" onclick="cancelOrderChange()"><i class="fas fa-undo"></i> Revert</button>
         </div>
 
         <!-- Activity Log -->
@@ -418,25 +687,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //  CONFIGURATION
 // ─────────────────────────────────────────────────────────────────────────────
-const REPO   = 'kebaboclock/kebaboclock';
-const BRANCH = 'main';
-
-const MENU_IMAGES = [
-    { file: 'menu-grilled-tastic.png',   label: 'Grilled-Tastic'  },
-    { file: 'menu-beefy-tastic.png',     label: 'Beefy-Tastic'    },
-    { file: 'menu-nashville-fire.png',   label: 'Nashville-Fire'  },
-    { file: 'menu-wrap-tastic.png',      label: 'Wrap-Tastic'     },
-    { file: 'menu-chicken-chips.png',    label: 'Chicken & Chips' },
-    { file: 'menu-don-shawarma.png',     label: 'Don-Shawarma'    },
-    { file: 'menu-koc-biryani.png',      label: 'KOC Biryani'     },
-    { file: 'menu-rice-box.png',         label: 'Rice Box'        },
-];
+const REPO      = 'kebaboclock/kebaboclock';
+const BRANCH    = 'main';
+const IMAGE_DIR = 'imagesdep';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  STATE
 // ─────────────────────────────────────────────────────────────────────────────
-let TOKEN    = '';
-let fileSHAs = {};   // filename → sha (needed for GitHub updates)
+let TOKEN          = '';
+let fileSHAs       = {};   // filename → sha
+let currentImages  = [];   // ordered list of filenames in imagesdep
+let originalOrder  = [];   // for detecting changes
+let stagedFiles    = [];   // files waiting for upload
+let pendingLogo    = null; // logo file waiting for upload
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  TOAST
@@ -454,12 +717,12 @@ function toast(msg, type = 'info', duration = 4000) {
 //  LOG
 // ─────────────────────────────────────────────────────────────────────────────
 function log(msg, cls = 'inf') {
-    const log  = document.getElementById('activity-log');
-    const ts   = new Date().toLocaleTimeString();
+    const logEl = document.getElementById('activity-log');
+    const ts    = new Date().toLocaleTimeString();
     const entry = document.createElement('div');
     entry.className = 'log-entry';
     entry.innerHTML = `<span class="ts">[${ts}]</span> <span class="${cls}">${msg}</span>`;
-    log.prepend(entry);
+    logEl.prepend(entry);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -479,17 +742,17 @@ async function ghFetch(path, options = {}) {
     return res;
 }
 
-async function getFileSHA(filename) {
+async function getFileSHA(filepath) {
     try {
-        const res  = await ghFetch(`contents/${filename}?ref=${BRANCH}`);
+        const res  = await ghFetch(`contents/${filepath}?ref=${BRANCH}`);
         if (!res.ok) return null;
         const data = await res.json();
         return data.sha || null;
     } catch { return null; }
 }
 
-async function uploadFile(filename, base64Content, message) {
-    const sha  = fileSHAs[filename] || await getFileSHA(filename);
+async function uploadFile(filepath, base64Content, message) {
+    const sha  = fileSHAs[filepath] || await getFileSHA(filepath);
     const body = {
         message,
         content: base64Content,
@@ -497,19 +760,39 @@ async function uploadFile(filename, base64Content, message) {
     };
     if (sha) body.sha = sha;
 
-    const res  = await ghFetch(`contents/${filename}`, {
+    const res  = await ghFetch(`contents/${filepath}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Upload failed');
-    fileSHAs[filename] = data.content.sha;
+    fileSHAs[filepath] = data.content.sha;
     return data;
 }
 
+async function deleteFile(filepath, message) {
+    const sha = fileSHAs[filepath] || await getFileSHA(filepath);
+    if (!sha) throw new Error('File not found');
+
+    const res = await ghFetch(`contents/${filepath}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, sha, branch: BRANCH }),
+    });
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Delete failed');
+    }
+    delete fileSHAs[filepath];
+}
+
+function rawUrl(filepath) {
+    return `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${filepath}?t=${Date.now()}`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-//  AUTH
+//  AUTH — with localStorage persistence
 // ─────────────────────────────────────────────────────────────────────────────
 async function connectGitHub() {
     const input = document.getElementById('token-input');
@@ -531,11 +814,16 @@ async function connectGitHub() {
         if (res.status === 404) throw new Error('Repo not found — ensure token has access.');
         if (!res.ok) throw new Error(`GitHub error: ${res.status}`);
 
+        // Save to localStorage if checkbox is checked
+        if (document.getElementById('remember-token').checked) {
+            localStorage.setItem('koc_github_token', TOKEN);
+        }
+
         setConnected(true);
         input.value = '';
         toast('Connected to GitHub ✓', 'success');
         log(`Connected to ${REPO}`, 'ok');
-        await buildImageGrid();
+        await refreshAll();
 
     } catch (err) {
         TOKEN = '';
@@ -551,9 +839,13 @@ async function connectGitHub() {
 function disconnect() {
     TOKEN = '';
     fileSHAs = {};
+    currentImages = [];
+    originalOrder = [];
+    localStorage.removeItem('koc_github_token');
     setConnected(false);
     document.getElementById('image-grid').innerHTML = '';
     document.getElementById('manager-section').style.display = 'none';
+    document.getElementById('save-order-bar').classList.remove('visible');
     log('Disconnected.', 'inf');
     toast('Disconnected.', 'info');
 }
@@ -569,162 +861,453 @@ function setConnected(ok) {
     document.getElementById('manager-section').style.display = ok ? 'block' : 'none';
 }
 
+// Auto-connect from localStorage on page load
+async function autoConnect() {
+    const saved = localStorage.getItem('koc_github_token');
+    if (saved) {
+        document.getElementById('token-input').value = saved;
+        await connectGitHub();
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-//  IMAGE GRID
+//  REFRESH ALL — load images and logo from imagesdep
+// ─────────────────────────────────────────────────────────────────────────────
+async function refreshAll() {
+    await loadLogoPreview();
+    await buildImageGrid();
+}
+
+async function loadLogoPreview() {
+    const preview = document.getElementById('logo-preview');
+    const sha = await getFileSHA(`${IMAGE_DIR}/logo.png`);
+    if (sha) {
+        fileSHAs[`${IMAGE_DIR}/logo.png`] = sha;
+        preview.src = rawUrl(`${IMAGE_DIR}/logo.png`);
+    } else {
+        preview.src = 'Logo.png';
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  IMAGE GRID — from GitHub directory listing
 // ─────────────────────────────────────────────────────────────────────────────
 async function buildImageGrid() {
     const grid = document.getElementById('image-grid');
     grid.innerHTML = '';
+    log('Loading images from imagesdep…');
 
-    log('Checking current image status…');
+    try {
+        // Get directory listing
+        const res = await ghFetch(`contents/${IMAGE_DIR}?ref=${BRANCH}`);
+        if (!res.ok) throw new Error('Could not list imagesdep folder');
 
-    for (const { file, label } of MENU_IMAGES) {
-        const sha  = await getFileSHA(file);
-        if (sha) fileSHAs[file] = sha;
+        const files = await res.json();
 
-        const card = createCard(file, label, sha);
-        grid.appendChild(card);
+        // Filter to image files, exclude logo.png and order.json
+        let imageFiles = files.filter(f =>
+            f.type === 'file' &&
+            /\.(png|jpg|jpeg|webp|gif)$/i.test(f.name) &&
+            f.name.toLowerCase() !== 'logo.png'
+        );
+
+        // Store SHAs
+        imageFiles.forEach(f => { fileSHAs[`${IMAGE_DIR}/${f.name}`] = f.sha; });
+        // Also store order.json SHA if it exists
+        const orderFile = files.find(f => f.name === 'order.json');
+        if (orderFile) fileSHAs[`${IMAGE_DIR}/order.json`] = orderFile.sha;
+
+        // Try to get order.json
+        let orderedNames = null;
+        try {
+            const orderRes = await fetch(rawUrl(`${IMAGE_DIR}/order.json`));
+            if (orderRes.ok) {
+                orderedNames = await orderRes.json();
+            }
+        } catch(e) { /* ignored */ }
+
+        // Sort
+        if (orderedNames && Array.isArray(orderedNames)) {
+            imageFiles.sort((a, b) => {
+                const idxA = orderedNames.indexOf(a.name);
+                const idxB = orderedNames.indexOf(b.name);
+                if (idxA === -1 && idxB === -1) return a.name.localeCompare(b.name);
+                if (idxA === -1) return 1;
+                if (idxB === -1) return -1;
+                return idxA - idxB;
+            });
+        } else {
+            imageFiles.sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        currentImages = imageFiles.map(f => f.name);
+        originalOrder = [...currentImages];
+
+        // Render cards
+        currentImages.forEach((filename, idx) => {
+            const card = createImageCard(filename, idx);
+            grid.appendChild(card);
+        });
+
+        log(`Loaded ${currentImages.length} images.`, 'ok');
+
+    } catch (err) {
+        log('imagesdep folder is empty or not accessible. Upload images to get started.', 'inf');
     }
-
-    log('Image status loaded.', 'ok');
 }
 
-function rawUrl(file) {
-    return `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${file}?t=${Date.now()}`;
-}
-
-function createCard(file, label, sha) {
-    const exists = !!sha;
+function createImageCard(filename, index) {
+    const filepath = `${IMAGE_DIR}/${filename}`;
+    const label = filename.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
 
     const card = document.createElement('div');
     card.className = 'image-card';
-    card.id = `card-${file.replace(/[^a-z0-9]/gi,'-')}`;
+    card.dataset.filename = filename;
+    card.draggable = true;
 
     card.innerHTML = `
         <div class="thumb-wrap">
-            ${exists
-                ? `<img src="${rawUrl(file)}" alt="${label}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-                : ''
-            }
-            <div class="no-image" style="display:${exists?'none':'flex'}">
-                <i class="fas fa-image"></i>
-                <span>Not yet uploaded</span>
+            <img src="${rawUrl(filepath)}" alt="${label}">
+            <span class="card-order-num">#${index + 1}</span>
+            <div class="card-actions-overlay">
+                <button class="card-action-btn" title="Replace" onclick="triggerReplace('${filename}')">
+                    <i class="fas fa-exchange-alt"></i>
+                </button>
+                <button class="card-action-btn danger" title="Delete" onclick="deleteImage('${filename}')">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             </div>
-            <span class="status-pill ${exists?'live':'missing'}">${exists?'Live':'Missing'}</span>
+            <input type="file" class="replace-input" accept="image/*"
+                   id="replace-input-${CSS.escape(filename)}"
+                   onchange="handleReplace('${filename}', this)">
         </div>
         <div class="card-body">
             <div class="card-label">${label}</div>
-            <div class="card-file">${file}</div>
-
-            <div class="drop-zone" id="drop-${file}" title="Click or drag an image">
-                <input type="file" accept="image/*" onchange="handleFileSelect('${file}','${label}',this)">
-                <i class="fas fa-cloud-upload-alt"></i>
-                ${exists ? 'Click or drag to <strong>replace</strong>' : 'Click or drag to <strong>upload</strong>'}
-            </div>
-
-            <div class="card-actions">
-                <button class="btn btn-sm" id="upload-btn-${file}" disabled
-                    onclick="uploadSelected('${file}','${label}')">
-                    <i class="fas fa-upload"></i> Upload
-                </button>
-                ${exists ? `
-                <a class="btn btn-sm" href="${rawUrl(file)}" target="_blank" rel="noopener"
-                    style="background:var(--surface);color:var(--orange);border:1px solid var(--border);text-decoration:none;">
-                    <i class="fas fa-external-link-alt"></i> View
-                </a>` : ''}
-            </div>
+            <div class="card-file">${filename}</div>
         </div>
     `;
 
-    // drag events
-    const dz = card.querySelector('.drop-zone');
-    dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
-    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-    dz.addEventListener('drop', e => {
+    // ── Drag & Drop for reordering ──
+    card.addEventListener('dragstart', e => {
+        card.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', filename);
+        e.dataTransfer.effectAllowed = 'move';
+    });
+
+    card.addEventListener('dragend', () => {
+        card.classList.remove('dragging');
+        document.querySelectorAll('.image-card').forEach(c => c.classList.remove('drag-over-card'));
+    });
+
+    card.addEventListener('dragover', e => {
         e.preventDefault();
-        dz.classList.remove('drag-over');
-        const fileInput = dz.querySelector('input[type="file"]');
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            handleFileSelect(file, label, fileInput);
+        e.dataTransfer.dropEffect = 'move';
+        const dragging = document.querySelector('.image-card.dragging');
+        if (dragging && dragging !== card) {
+            card.classList.add('drag-over-card');
         }
+    });
+
+    card.addEventListener('dragleave', () => {
+        card.classList.remove('drag-over-card');
+    });
+
+    card.addEventListener('drop', e => {
+        e.preventDefault();
+        card.classList.remove('drag-over-card');
+        const draggedFile = e.dataTransfer.getData('text/plain');
+        if (!draggedFile || draggedFile === filename) return;
+
+        // Swap in our array
+        const fromIdx = currentImages.indexOf(draggedFile);
+        const toIdx   = currentImages.indexOf(filename);
+        if (fromIdx === -1 || toIdx === -1) return;
+
+        // Remove and insert at new position
+        currentImages.splice(fromIdx, 1);
+        currentImages.splice(toIdx, 0, draggedFile);
+
+        // Re-render grid
+        renderGrid();
+        checkOrderChanged();
     });
 
     return card;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  FILE SELECTION & UPLOAD
-// ─────────────────────────────────────────────────────────────────────────────
-const pendingFiles = {};
+function renderGrid() {
+    const grid = document.getElementById('image-grid');
+    grid.innerHTML = '';
+    currentImages.forEach((filename, idx) => {
+        const card = createImageCard(filename, idx);
+        grid.appendChild(card);
+    });
+}
 
-function handleFileSelect(targetFile, label, input) {
+function checkOrderChanged() {
+    const changed = JSON.stringify(currentImages) !== JSON.stringify(originalOrder);
+    const bar = document.getElementById('save-order-bar');
+    if (changed) {
+        bar.classList.add('visible');
+    } else {
+        bar.classList.remove('visible');
+    }
+}
+
+function cancelOrderChange() {
+    currentImages = [...originalOrder];
+    renderGrid();
+    document.getElementById('save-order-bar').classList.remove('visible');
+    toast('Order reverted.', 'info');
+}
+
+async function saveOrder() {
+    const btn = document.querySelector('#save-order-bar .btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Saving…';
+
+    try {
+        const orderJson = JSON.stringify(currentImages, null, 2);
+        const base64 = btoa(unescape(encodeURIComponent(orderJson)));
+        await uploadFile(`${IMAGE_DIR}/order.json`, base64, 'Update image order via admin panel');
+
+        originalOrder = [...currentImages];
+        document.getElementById('save-order-bar').classList.remove('visible');
+        toast('Image order saved ✓', 'success');
+        log('Image order saved to order.json', 'ok');
+    } catch (err) {
+        toast(`Failed to save order: ${err.message}`, 'error');
+        log(`Error saving order: ${err.message}`, 'err');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Save Order';
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  REPLACE SPECIFIC IMAGE
+// ─────────────────────────────────────────────────────────────────────────────
+function triggerReplace(filename) {
+    const input = document.getElementById(`replace-input-${CSS.escape(filename)}`);
+    if (input) input.click();
+}
+
+async function handleReplace(filename, input) {
     const file = input.files[0];
     if (!file) return;
-
     if (!file.type.startsWith('image/')) {
         toast('Please select an image file.', 'error');
         return;
     }
 
-    pendingFiles[targetFile] = file;
+    const filepath = `${IMAGE_DIR}/${filename}`;
+    log(`Replacing ${filename}…`);
 
-    const btn = document.getElementById(`upload-btn-${targetFile}`);
-    btn.disabled = false;
-    btn.innerHTML = `<i class="fas fa-upload"></i> Upload "${file.name}"`;
-
-    log(`Selected: ${file.name} (${(file.size/1024).toFixed(1)} KB) for "${label}"`);
+    try {
+        const base64 = await fileToBase64(file);
+        await uploadFile(filepath, base64, `Replace ${filename} via admin panel`);
+        toast(`${filename} replaced ✓`, 'success');
+        log(`Replaced ${filename}`, 'ok');
+        renderGrid(); // refresh thumbnails
+    } catch (err) {
+        toast(`Replace failed: ${err.message}`, 'error');
+        log(`Error replacing ${filename}: ${err.message}`, 'err');
+    }
 }
 
-async function uploadSelected(targetFile, label) {
-    const file = pendingFiles[targetFile];
-    if (!file) { toast('No file selected.', 'error'); return; }
+// ─────────────────────────────────────────────────────────────────────────────
+//  DELETE IMAGE
+// ─────────────────────────────────────────────────────────────────────────────
+async function deleteImage(filename) {
+    if (!confirm(`Delete "${filename}" permanently?`)) return;
 
-    const btn = document.getElementById(`upload-btn-${targetFile}`);
+    const filepath = `${IMAGE_DIR}/${filename}`;
+    log(`Deleting ${filename}…`);
+
+    try {
+        await deleteFile(filepath, `Delete ${filename} via admin panel`);
+        currentImages = currentImages.filter(f => f !== filename);
+        originalOrder = originalOrder.filter(f => f !== filename);
+        renderGrid();
+        checkOrderChanged();
+
+        // Update order.json too
+        try {
+            const orderJson = JSON.stringify(currentImages, null, 2);
+            const base64 = btoa(unescape(encodeURIComponent(orderJson)));
+            await uploadFile(`${IMAGE_DIR}/order.json`, base64, 'Update order after delete');
+        } catch(e) { /* order.json update failed, not critical */ }
+
+        toast(`${filename} deleted ✓`, 'success');
+        log(`Deleted ${filename}`, 'ok');
+    } catch (err) {
+        toast(`Delete failed: ${err.message}`, 'error');
+        log(`Error deleting ${filename}: ${err.message}`, 'err');
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  LOGO UPLOAD
+// ─────────────────────────────────────────────────────────────────────────────
+function handleLogoSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        toast('Please select an image file.', 'error');
+        return;
+    }
+
+    pendingLogo = file;
+    // Preview
+    const reader = new FileReader();
+    reader.onload = () => {
+        document.getElementById('logo-preview').src = reader.result;
+    };
+    reader.readAsDataURL(file);
+
+    document.getElementById('logo-upload-btn').disabled = false;
+    log(`Logo selected: ${file.name} (${(file.size/1024).toFixed(1)} KB)`);
+}
+
+async function uploadLogo() {
+    if (!pendingLogo) return;
+    const btn = document.getElementById('logo-upload-btn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spin"></span> Uploading…';
 
     try {
-        const base64 = await fileToBase64(file);
-        const msg    = `Update ${targetFile} via admin panel`;
-
-        await uploadFile(targetFile, base64, msg);
-
-        toast(`"${label}" updated successfully ✓`, 'success');
-        log(`Uploaded ${targetFile} → ${label}`, 'ok');
-
-        delete pendingFiles[targetFile];
-
-        // refresh the card thumbnail
-        const cardId = `card-${targetFile.replace(/[^a-z0-9]/gi,'-')}`;
-        const card   = document.getElementById(cardId);
-        const img    = card.querySelector('img');
-        const noImg  = card.querySelector('.no-image');
-        const pill   = card.querySelector('.status-pill');
-
-        if (img) {
-            img.src = rawUrl(targetFile);
-            img.style.display = 'block';
-        } else {
-            const newImg = document.createElement('img');
-            newImg.src = rawUrl(targetFile);
-            newImg.alt = label;
-            newImg.onerror = () => { newImg.style.display='none'; if(noImg) noImg.style.display='flex'; };
-            card.querySelector('.thumb-wrap').prepend(newImg);
-        }
-        if (noImg)  noImg.style.display = 'none';
-        if (pill) { pill.textContent = 'Live'; pill.className = 'status-pill live'; }
-
-        btn.innerHTML = '<i class="fas fa-upload"></i> Upload';
-
+        const base64 = await fileToBase64(pendingLogo);
+        await uploadFile(`${IMAGE_DIR}/logo.png`, base64, 'Update logo via admin panel');
+        toast('Logo uploaded ✓', 'success');
+        log('Logo uploaded to imagesdep/logo.png', 'ok');
+        pendingLogo = null;
+        document.getElementById('logo-preview').src = rawUrl(`${IMAGE_DIR}/logo.png`);
     } catch (err) {
-        toast(`Upload failed: ${err.message}`, 'error');
-        log(`Error uploading ${targetFile}: ${err.message}`, 'err');
-        btn.disabled  = false;
-        btn.innerHTML = '<i class="fas fa-upload"></i> Retry';
+        toast(`Logo upload failed: ${err.message}`, 'error');
+        log(`Error uploading logo: ${err.message}`, 'err');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-upload"></i> Upload Logo';
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  BULK UPLOAD — stage multiple files, then upload all at once
+// ─────────────────────────────────────────────────────────────────────────────
+function handleBulkFiles(fileList) {
+    const newFiles = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    if (newFiles.length === 0) {
+        toast('No image files selected.', 'error');
+        return;
+    }
+
+    stagedFiles.push(...newFiles);
+    renderStagedFiles();
+    log(`Staged ${newFiles.length} file(s) for upload.`);
+}
+
+function renderStagedFiles() {
+    const container = document.getElementById('staged-files');
+    container.innerHTML = '';
+
+    stagedFiles.forEach((file, idx) => {
+        const el = document.createElement('div');
+        el.className = 'staged-file';
+        el.innerHTML = `
+            <i class="fas fa-image" style="color:var(--orange);font-size:.75rem;"></i>
+            <span>${file.name} (${(file.size/1024).toFixed(0)} KB)</span>
+            <button class="remove-staged" onclick="removeStagedFile(${idx})"><i class="fas fa-times"></i></button>
+        `;
+        container.appendChild(el);
+    });
+
+    const uploadBtn = document.getElementById('bulk-upload-btn');
+    const clearBtn  = document.getElementById('clear-staged-btn');
+    uploadBtn.disabled = stagedFiles.length === 0;
+    clearBtn.style.display = stagedFiles.length > 0 ? 'inline-block' : 'none';
+}
+
+function removeStagedFile(idx) {
+    stagedFiles.splice(idx, 1);
+    renderStagedFiles();
+}
+
+function clearStaged() {
+    stagedFiles = [];
+    renderStagedFiles();
+    // Reset the file input
+    const input = document.querySelector('#bulk-drop-zone input[type="file"]');
+    if (input) input.value = '';
+}
+
+async function uploadAllStaged() {
+    if (stagedFiles.length === 0) return;
+
+    const btn = document.getElementById('bulk-upload-btn');
+    const progressWrap = document.getElementById('upload-progress');
+    const progressBar  = document.getElementById('progress-bar');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Uploading…';
+    progressWrap.style.display = 'block';
+    progressBar.style.width = '0%';
+
+    const total = stagedFiles.length;
+    let done = 0;
+    let errors = 0;
+
+    for (const file of stagedFiles) {
+        try {
+            const base64    = await fileToBase64(file);
+            const filepath  = `${IMAGE_DIR}/${file.name}`;
+            const msg       = `Upload ${file.name} via admin panel`;
+            await uploadFile(filepath, base64, msg);
+
+            // Add to current images list if not already there
+            if (!currentImages.includes(file.name)) {
+                currentImages.push(file.name);
+            }
+
+            log(`Uploaded ${file.name}`, 'ok');
+        } catch (err) {
+            errors++;
+            log(`Error uploading ${file.name}: ${err.message}`, 'err');
+        }
+
+        done++;
+        progressBar.style.width = `${(done / total) * 100}%`;
+    }
+
+    // Update order.json with new list
+    try {
+        const orderJson = JSON.stringify(currentImages, null, 2);
+        const base64 = btoa(unescape(encodeURIComponent(orderJson)));
+        await uploadFile(`${IMAGE_DIR}/order.json`, base64, 'Update image order after bulk upload');
+    } catch(e) { /* not critical */ }
+
+    originalOrder = [...currentImages];
+    stagedFiles = [];
+    renderStagedFiles();
+    renderGrid();
+
+    // Reset file input
+    const input = document.querySelector('#bulk-drop-zone input[type="file"]');
+    if (input) input.value = '';
+
+    if (errors === 0) {
+        toast(`All ${total} images uploaded ✓`, 'success');
+    } else {
+        toast(`${total - errors}/${total} uploaded, ${errors} failed`, 'error');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-upload"></i> Upload All';
+    setTimeout(() => { progressWrap.style.display = 'none'; }, 1500);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  UTILITY
+// ─────────────────────────────────────────────────────────────────────────────
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -735,11 +1318,44 @@ function fileToBase64(file) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  BULK DROP ZONE — drag events
+// ─────────────────────────────────────────────────────────────────────────────
+const bulkDrop = document.getElementById('bulk-drop-zone');
+bulkDrop.addEventListener('dragover', e => { e.preventDefault(); bulkDrop.classList.add('drag-over'); });
+bulkDrop.addEventListener('dragleave', () => bulkDrop.classList.remove('drag-over'));
+bulkDrop.addEventListener('drop', e => {
+    e.preventDefault();
+    bulkDrop.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) {
+        handleBulkFiles(e.dataTransfer.files);
+    }
+});
+
+// LOGO DROP ZONE — drag events
+const logoDrop = document.getElementById('logo-drop-zone');
+logoDrop.addEventListener('dragover', e => { e.preventDefault(); logoDrop.classList.add('drag-over'); });
+logoDrop.addEventListener('dragleave', () => logoDrop.classList.remove('drag-over'));
+logoDrop.addEventListener('drop', e => {
+    e.preventDefault();
+    logoDrop.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) {
+        const input = logoDrop.querySelector('input[type="file"]');
+        input.files = e.dataTransfer.files;
+        handleLogoSelect(input);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  ENTER KEY on token input
 // ─────────────────────────────────────────────────────────────────────────────
 document.getElementById('token-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') connectGitHub();
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  INIT — auto-connect from localStorage
+// ─────────────────────────────────────────────────────────────────────────────
+autoConnect();
 </script>
 
 </body>
