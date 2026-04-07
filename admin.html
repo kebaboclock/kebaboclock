@@ -1108,13 +1108,33 @@ async function handleReplace(filename, input) {
     const filepath = `${IMAGE_DIR}/${filename}`;
     log(`Replacing ${filename}…`);
 
+    // Show local preview immediately so the user sees something changed
+    const localPreviewUrl = URL.createObjectURL(file);
+    const existingCard = document.querySelector(`.image-card[data-filename="${CSS.escape(filename)}"]`);
+    const existingImg  = existingCard ? existingCard.querySelector('img') : null;
+    if (existingImg) existingImg.src = localPreviewUrl;
+
     try {
+        // Always fetch the latest SHA so we never send a stale one (avoids 409 Conflict)
+        fileSHAs[filepath] = await getFileSHA(filepath);
+
         const base64 = await fileToBase64(file);
         await uploadFile(filepath, base64, `Replace ${filename} via admin panel`);
         toast(`${filename} replaced ✓`, 'success');
         log(`Replaced ${filename}`, 'ok');
-        renderGrid(); // refresh thumbnails
+
+        // Update the img src with a strong cache-buster so the new image is shown
+        // (GitHub CDN can be slow, so we keep the local blob URL for now and
+        //  swap to the remote URL after a short delay to give CDN time to propagate)
+        setTimeout(() => {
+            if (existingImg) existingImg.src = rawUrl(filepath);
+            URL.revokeObjectURL(localPreviewUrl);
+        }, 3000);
+
     } catch (err) {
+        // Restore original src on failure
+        if (existingImg) existingImg.src = rawUrl(filepath);
+        URL.revokeObjectURL(localPreviewUrl);
         toast(`Replace failed: ${err.message}`, 'error');
         log(`Error replacing ${filename}: ${err.message}`, 'err');
     }
