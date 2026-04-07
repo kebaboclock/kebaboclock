@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kebab O'Clock</title>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --orange: #ff6a00;
+            --orange-dark: #e05a00;
+            --bg: #121212;
+            --card: #1a1a1a;
+            --border: #222222;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Lato', sans-serif;
+        }
+
+        /* ── HEADER ── */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2.5rem;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .logo-wrap { display: flex; align-items: center; gap: 14px; }
+
+        .halal-badge {
+            width: 46px; height: 46px;
+            border: 2px solid var(--orange);
+            border-radius: 50%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-size: .52rem; font-weight: 700; color: var(--orange);
+            line-height: 1.1; text-align: center; letter-spacing: .5px;
+            flex-shrink: 0;
+        }
+        .halal-badge span { font-size: .85rem; font-weight: 900; }
+
+        .logo-text {
+            font-family: 'Righteous', cursive;
+            font-size: 1.4rem;
+            color: var(--orange);
+            letter-spacing: 1px;
+        }
+
+        header nav a {
+            color: #d1d5db;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: .95rem;
+            margin-left: 2rem;
+            transition: color .2s;
+            letter-spacing: .3px;
+        }
+        header nav a:hover { color: var(--orange); }
+
+        @media (max-width: 640px) {
+            .logo-text, header nav { display: none; }
+            header { padding: 1rem 1.25rem; }
+        }
+
+        /* ── HERO ── */
+        #hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .hero-backdrop {
+            position: absolute;
+            inset: 0;
+            background: url('Backdrop.jpg') center/cover no-repeat;
+            filter: blur(8px) brightness(.4);
+            transform: scale(1.06);
+            z-index: 0;
+        }
+
+        .hero-backdrop-fallback {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 20% 50%, #3a1200 0%, #0a0a0a 70%);
+            z-index: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            padding: 4rem 2.5rem;
+            max-width: 950px;
+        }
+
+        .hero-content h1 {
+            font-family: 'Righteous', cursive;
+            font-size: clamp(2.8rem, 8vw, 6rem);
+            line-height: 1.05;
+            font-weight: 900;
+            margin-bottom: 1.4rem;
+        }
+        .hero-content h1 span { color: var(--orange); display: block; }
+
+        .hero-content p {
+            font-size: clamp(1rem, 2.5vw, 1.35rem);
+            color: #d1d5db;
+            max-width: 580px;
+            line-height: 1.75;
+            margin-bottom: 2.5rem;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            background: var(--orange);
+            color: #000;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: .9rem 2.4rem;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: background .2s, transform .15s;
+            margin-right: 1rem;
+            margin-bottom: .5rem;
+        }
+        .cta-btn:hover { background: var(--orange-dark); transform: translateY(-2px); }
+
+        .cta-btn-outline {
+            display: inline-block;
+            background: transparent;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: .9rem 2.4rem;
+            border-radius: 12px;
+            text-decoration: none;
+            border: 2px solid rgba(255,255,255,.25);
+            transition: border-color .2s, color .2s, transform .15s;
+            margin-bottom: .5rem;
+        }
+        .cta-btn-outline:hover { border-color: var(--orange); color: var(--orange); transform: translateY(-2px); }
+
+        .hero-meta {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2.5rem;
+            color: #9ca3af;
+            font-size: .95rem;
+            font-weight: 600;
+            flex-wrap: wrap;
+        }
+        .hero-meta span { display: flex; align-items: center; gap: .5rem; }
+        .hero-meta i { color: var(--orange); }
+
+        /* ── INFO TICKER ── */
+        .info-ticker {
+            background: linear-gradient(90deg, #1a0a00, #2a1200, #1a0a00);
+            border-top: 2px solid var(--orange);
+            border-bottom: 2px solid var(--orange);
+            padding: .75rem 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .ticker-track {
+            display: inline-block;
+            animation: marquee 35s linear infinite;
+            white-space: nowrap;
+            font-family: 'Righteous', cursive;
+            font-size: .9rem;
+            letter-spacing: 1.5px;
+            color: var(--orange);
+        }
+
+        .ticker-track .sep { margin: 0 1.5rem; opacity: .4; }
+
+        @keyframes marquee {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
+
+        /* ── MENU SECTION ── */
+        #menu {
+            padding: 5rem 1.5rem;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .section-heading {
+            font-family: 'Righteous', cursive;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            text-align: center;
+            margin-bottom: .6rem;
+        }
+
+        .section-sub {
+            text-align: center;
+            color: #6b7280;
+            font-size: 1rem;
+            margin-bottom: 3.5rem;
+            letter-spacing: .3px;
+        }
+
+        .menu-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .menu-panel {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--card);
+            transition: transform .3s cubic-bezier(.25,.8,.25,1), box-shadow .3s;
+        }
+        .menu-panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 48px rgba(255,106,0,.2);
+        }
+        .menu-panel img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ── CONTACT STRIP ── */
+        #contact {
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            padding: 4rem 2rem;
+        }
+
+        .contact-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .contact-inner h2 {
+            font-family: 'Righteous', cursive;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            margin-bottom: .75rem;
+        }
+
+        .contact-inner > p {
+            color: #6b7280;
+            font-size: 1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .contact-cards {
+            display: flex;
+            gap: 1.25rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .contact-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.75rem 2rem;
+            min-width: 190px;
+            flex: 1;
+            max-width: 240px;
+            text-decoration: none;
+            color: #fff;
+            transition: border-color .2s, transform .2s;
+        }
+        .contact-card:hover { border-color: var(--orange); transform: translateY(-3px); }
+        .contact-card i { font-size: 1.75rem; color: var(--orange); display: block; margin-bottom: .9rem; }
+        .contact-card .cc-label { font-size: .75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: .35rem; }
+        .contact-card .cc-value { font-weight: 700; font-size: .95rem; line-height: 1.6; }
+
+        /* ── FOOTER ── */
+        footer {
+            background: #0a0a0a;
+            border-top: 1px solid var(--border);
+            padding: 1.75rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .footer-brand { font-family: 'Righteous', cursive; color: var(--orange); font-size: 1.1rem; }
+        .footer-copy  { color: #374151; font-size: .85rem; }
+        .footer-social { display: flex; gap: 1.25rem; }
+        .footer-social a { color: #6b7280; font-size: 1.15rem; transition: color .2s; text-decoration: none; }
+        .footer-social a:hover { color: var(--orange); }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+    <div class="logo-wrap">
+        <div class="halal-badge"><span>حلال</span>HALAL</div>
+        <span class="logo-text">Kebab O'Clock</span>
+    </div>
+    <nav>
+        <a href="#hero">Home</a>
+        <a href="#menu">Menu</a>
+        <a href="#contact">Contact</a>
+    </nav>
+</header>
+
+<!-- HERO -->
+<section id="hero">
+    <div class="hero-backdrop-fallback"></div>
+    <div class="hero-backdrop"></div>
+    <div class="hero-content">
+        <h1>
+            WHERE FLAVOUR
+            <span>MEETS TIME</span>
+        </h1>
+        <p>
+            Experience authentic kebabs, burgers and shawarma crafted with passion.
+            Fresh ingredients, bold flavours, and unbeatable taste — available every
+            day from 12PM till 2AM.
+        </p>
+        <div>
+            <a href="#menu" class="cta-btn">
+                <i class="fas fa-utensils"></i>&nbsp; View Menu
+            </a>
+            <a href="#contact" class="cta-btn-outline">
+                Find Us
+            </a>
+        </div>
+        <div class="hero-meta">
+            <span><i class="fas fa-star"></i> 4.8 Rating</span>
+            <span><i class="fas fa-clock"></i> 12PM – 2AM Daily</span>
+            <span><i class="fas fa-certificate"></i> Halal Certified</span>
+        </div>
+    </div>
+</section>
+
+<!-- INFO TICKER — duplicated content for seamless loop -->
+<div class="info-ticker">
+    <span class="ticker-track">
+        <i class="fas fa-certificate"></i>&nbsp; HALAL CERTIFIED
+        <span class="sep">•</span>
+        <i class="fas fa-clock"></i>&nbsp; OPEN 12PM – 2AM EVERY DAY
+        <span class="sep">•</span>
+        <i class="fas fa-phone-alt"></i>&nbsp; 07438 772056
+        <span class="sep">•</span>
+        <i class="fas fa-map-marker-alt"></i>&nbsp; 476 GREAT WEST ROAD, HOUNSLOW TW5 0TA
+        <span class="sep">•</span>
+        <i class="fas fa-fire"></i>&nbsp; GRILLED &nbsp;•&nbsp; SMASHED &nbsp;•&nbsp; SHAWARMA &nbsp;•&nbsp; WRAPS &nbsp;•&nbsp; BIRYANI
+        <span class="sep">•</span>
+        <i class="fas fa-certificate"></i>&nbsp; HALAL CERTIFIED
+        <span class="sep">•</span>
+        <i class="fas fa-clock"></i>&nbsp; OPEN 12PM – 2AM EVERY DAY
+        <span class="sep">•</span>
+        <i class="fas fa-phone-alt"></i>&nbsp; 07438 772056
+        <span class="sep">•</span>
+        <i class="fas fa-map-marker-alt"></i>&nbsp; 476 GREAT WEST ROAD, HOUNSLOW TW5 0TA
+        <span class="sep">•</span>
+        <i class="fas fa-fire"></i>&nbsp; GRILLED &nbsp;•&nbsp; SMASHED &nbsp;•&nbsp; SHAWARMA &nbsp;•&nbsp; WRAPS &nbsp;•&nbsp; BIRYANI
+        <span class="sep">•</span>
+    </span>
+</div>
+
+<!-- MENU -->
+<section id="menu">
+    <h2 class="section-heading">OUR MENU</h2>
+    <p class="section-sub">Discover our full range — something for every craving</p>
+    <div class="menu-grid" id="menu-image-grid"></div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+    <div class="contact-inner">
+        <h2>Come Visit Us</h2>
+        <p>Walk in, sit down, or give us a call — we're open every single day.</p>
+        <div class="contact-cards">
+            <a class="contact-card" href="https://maps.app.goo.gl/BQyKUCf2AcjfTWvT9" target="_blank" rel="noopener">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="cc-label">Address</div>
+                <div class="cc-value">476 Great West Road<br>Hounslow, TW5 0TA</div>
+            </a>
+            <a class="contact-card" href="tel:07438772056">
+                <i class="fas fa-phone-alt"></i>
+                <div class="cc-label">Phone</div>
+                <div class="cc-value">07438 772056</div>
+            </a>
+            <div class="contact-card">
+                <i class="fas fa-clock"></i>
+                <div class="cc-label">Hours</div>
+                <div class="cc-value">Mon – Sun<br>12PM til 2AM</div>
+            </div>
+            <div class="contact-card">
+                <i class="fas fa-certificate"></i>
+                <div class="cc-label">Certification</div>
+                <div class="cc-value">100% Halal<br>Certified</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <span class="footer-brand">Kebab O'Clock</span>
+    <div class="footer-social">
+        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+        <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+    </div>
+    <span class="footer-copy">© 2025 Kebab O'Clock. All rights reserved.</span>
+</footer>
+
+<script>
+    const REPO   = 'kebaboclock/kebaboclock';
+    const BRANCH = 'main';
+
+    const menuImages = [
+        { file: 'menu-grilled-tastic.png',   label: 'Grilled-Tastic'  },
+        { file: 'menu-beefy-tastic.png',     label: 'Beefy-Tastic'    },
+        { file: 'menu-nashville-fire.png',   label: 'Nashville-Fire'  },
+        { file: 'menu-wrap-tastic.png',      label: 'Wrap-Tastic'     },
+        { file: 'menu-chicken-chips.png',    label: 'Chicken & Chips' },
+        { file: 'menu-don-shawarma.png',     label: 'Don-Shawarma'    },
+        { file: 'menu-koc-biryani.png',      label: 'KOC Biryani'     },
+        { file: 'menu-rice-box.png',         label: 'Rice Box'        },
+    ];
+
+    const grid = document.getElementById('menu-image-grid');
+
+    menuImages.forEach(({ file, label }) => {
+        const panel = document.createElement('div');
+        panel.className = 'menu-panel';
+
+        const img = document.createElement('img');
+        img.src     = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${file}`;
+        img.alt     = label;
+        img.loading = 'lazy';
+
+        // hide the card entirely if image isn't uploaded yet
+        img.onerror = () => { panel.style.display = 'none'; };
+
+        panel.appendChild(img);
+        grid.appendChild(panel);
+    });
+</script>
+
+</body>
+</html>
