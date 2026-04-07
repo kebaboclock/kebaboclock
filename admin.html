@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KOC Admin – Image Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --orange: #ff6a00;
+            --orange-dark: #e05a00;
+            --bg: #0e0e0e;
+            --surface: #161616;
+            --card: #1c1c1c;
+            --border: #2a2a2a;
+            --muted: #6b7280;
+            --green: #22c55e;
+            --red: #ef4444;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: #f1f1f1;
+            font-family: 'Lato', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .9rem 2rem;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left { display: flex; align-items: center; gap: .75rem; }
+
+        .logo-text {
+            font-family: 'Righteous', cursive;
+            color: var(--orange);
+            font-size: 1.25rem;
+            letter-spacing: 1px;
+        }
+
+        .admin-badge {
+            background: rgba(255,106,0,.15);
+            border: 1px solid var(--orange);
+            color: var(--orange);
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: .2rem .6rem;
+            border-radius: 999px;
+        }
+
+        #auth-status {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .875rem;
+            font-weight: 600;
+        }
+
+        .dot {
+            width: 9px; height: 9px;
+            border-radius: 50%;
+            background: var(--muted);
+            flex-shrink: 0;
+        }
+        .dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .dot.error     { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+
+        /* ── MAIN LAYOUT ── */
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem;
+        }
+
+        /* ── AUTH CARD ── */
+        .auth-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .auth-card h2 {
+            font-family: 'Righteous', cursive;
+            color: var(--orange);
+            font-size: 1.3rem;
+            margin-bottom: .4rem;
+        }
+
+        .auth-card p {
+            color: var(--muted);
+            font-size: .9rem;
+            margin-bottom: 1.25rem;
+            line-height: 1.6;
+        }
+
+        .input-row {
+            display: flex;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        input[type="password"], input[type="text"] {
+            flex: 1;
+            min-width: 220px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: #fff;
+            border-radius: 8px;
+            padding: .65rem 1rem;
+            font-size: .95rem;
+            font-family: 'Lato', sans-serif;
+            outline: none;
+            transition: border-color .2s;
+        }
+        input:focus { border-color: var(--orange); }
+
+        .btn {
+            background: var(--orange);
+            color: #000;
+            border: none;
+            padding: .65rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: .95rem;
+            cursor: pointer;
+            transition: background .2s, transform .15s;
+            white-space: nowrap;
+        }
+        .btn:hover  { background: var(--orange-dark); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { background: #444; color: #888; cursor: not-allowed; transform: none; }
+
+        .btn-sm {
+            padding: .45rem 1rem;
+            font-size: .85rem;
+        }
+
+        .btn-danger {
+            background: var(--red);
+            color: #fff;
+        }
+        .btn-danger:hover { background: #c53030; }
+
+        /* ── SECTION TITLE ── */
+        .section-title {
+            font-family: 'Righteous', cursive;
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── IMAGE GRID ── */
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .image-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: box-shadow .25s;
+        }
+        .image-card:hover { box-shadow: 0 8px 30px rgba(255,106,0,.15); }
+
+        .image-card .thumb-wrap {
+            position: relative;
+            background: #0a0a0a;
+            aspect-ratio: 16/9;
+            overflow: hidden;
+        }
+
+        .image-card img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: opacity .3s;
+        }
+
+        .image-card .no-image {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--muted);
+            font-size: .85rem;
+            text-align: center;
+            gap: .5rem;
+        }
+        .image-card .no-image i { font-size: 2rem; color: var(--border); }
+
+        .status-pill {
+            position: absolute;
+            top: .6rem; right: .6rem;
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: .25rem .6rem;
+            border-radius: 999px;
+        }
+        .status-pill.live    { background: rgba(34,197,94,.2); border:1px solid var(--green); color:var(--green); }
+        .status-pill.missing { background: rgba(239,68,68,.15); border:1px solid var(--red); color:var(--red); }
+
+        .image-card .card-body {
+            padding: 1rem;
+        }
+
+        .image-card .card-label {
+            font-family: 'Righteous', cursive;
+            color: var(--orange);
+            font-size: 1rem;
+            margin-bottom: .3rem;
+        }
+
+        .image-card .card-file {
+            font-size: .75rem;
+            color: var(--muted);
+            margin-bottom: .9rem;
+            word-break: break-all;
+        }
+
+        /* upload zone */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: .9rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color .2s, background .2s;
+            font-size: .85rem;
+            color: var(--muted);
+            margin-bottom: .75rem;
+            position: relative;
+        }
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: var(--orange);
+            background: rgba(255,106,0,.06);
+            color: var(--orange);
+        }
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+        }
+        .drop-zone i { display: block; font-size: 1.4rem; margin-bottom: .35rem; }
+
+        .card-actions { display: flex; gap: .5rem; }
+
+        /* ── TOAST ── */
+        #toast-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .toast {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: .8rem 1.25rem;
+            font-size: .9rem;
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            animation: slide-in .3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,.5);
+            min-width: 240px;
+            max-width: 360px;
+        }
+        .toast.success { border-left: 3px solid var(--green); }
+        .toast.error   { border-left: 3px solid var(--red);   }
+        .toast.info    { border-left: 3px solid var(--orange); }
+        .toast i { flex-shrink: 0; font-size: 1rem; }
+        .toast.success i { color: var(--green); }
+        .toast.error   i { color: var(--red); }
+        .toast.info    i { color: var(--orange); }
+
+        @keyframes slide-in {
+            from { transform: translateX(120%); opacity:0; }
+            to   { transform: translateX(0);    opacity:1; }
+        }
+
+        /* ── LOG ── */
+        #activity-log {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            font-size: .82rem;
+            color: var(--muted);
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            line-height: 1.7;
+        }
+
+        #activity-log .log-entry { border-bottom: 1px solid var(--border); padding: .25rem 0; }
+        #activity-log .log-entry:last-child { border-bottom: none; }
+        #activity-log .ts { color: #3f3f3f; }
+        #activity-log .ok  { color: var(--green); }
+        #activity-log .err { color: var(--red); }
+        #activity-log .inf { color: var(--orange); }
+
+        /* spinner */
+        .spin {
+            display: inline-block;
+            width: 14px; height: 14px;
+            border: 2px solid rgba(0,0,0,.3);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+            vertical-align: middle;
+            margin-right: .3rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 500px) {
+            main { padding: 1.5rem .75rem; }
+            .input-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+    <div class="header-left">
+        <span class="logo-text">Kebab O'Clock</span>
+        <span class="admin-badge">Admin</span>
+    </div>
+    <div id="auth-status">
+        <div class="dot" id="status-dot"></div>
+        <span id="status-text">Not connected</span>
+    </div>
+</header>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<main>
+
+    <!-- ── AUTH ── -->
+    <div class="auth-card">
+        <h2><i class="fas fa-key"></i> GitHub Authentication</h2>
+        <p>
+            Enter a <strong>fine-grained personal access token</strong> scoped to the
+            <code>kebaboclock/kebaboclock</code> repo with <strong>Contents: Read &amp; Write</strong>
+            permission. The token is stored only in memory and never sent anywhere except the GitHub API.
+        </p>
+        <div class="input-row">
+            <input type="password" id="token-input" placeholder="github_pat_…" autocomplete="off" spellcheck="false">
+            <button class="btn" id="connect-btn" onclick="connectGitHub()">
+                <i class="fas fa-plug"></i> Connect
+            </button>
+            <button class="btn btn-danger btn-sm" id="disconnect-btn" onclick="disconnect()" style="display:none">
+                <i class="fas fa-times"></i> Disconnect
+            </button>
+        </div>
+        <p id="auth-hint" style="margin-top:.75rem;font-size:.8rem;"></p>
+    </div>
+
+    <!-- ── IMAGE MANAGER ── -->
+    <div id="manager-section" style="display:none">
+
+        <div class="section-title"><i class="fas fa-images" style="color:var(--orange)"></i> Menu Images</div>
+
+        <div class="image-grid" id="image-grid">
+            <!-- Cards injected by JS -->
+        </div>
+
+        <!-- Activity Log -->
+        <div class="section-title" style="margin-top:1rem"><i class="fas fa-terminal" style="color:var(--orange)"></i> Activity Log</div>
+        <div id="activity-log"><div class="log-entry"><span class="inf">Ready.</span></div></div>
+
+    </div><!-- /manager-section -->
+
+</main>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+//  CONFIGURATION
+// ─────────────────────────────────────────────────────────────────────────────
+const REPO   = 'kebaboclock/kebaboclock';
+const BRANCH = 'main';
+
+const MENU_IMAGES = [
+    { file: 'menu-grilled-tastic.png',   label: 'Grilled-Tastic'  },
+    { file: 'menu-beefy-tastic.png',     label: 'Beefy-Tastic'    },
+    { file: 'menu-nashville-fire.png',   label: 'Nashville-Fire'  },
+    { file: 'menu-wrap-tastic.png',      label: 'Wrap-Tastic'     },
+    { file: 'menu-chicken-chips.png',    label: 'Chicken & Chips' },
+    { file: 'menu-don-shawarma.png',     label: 'Don-Shawarma'    },
+    { file: 'menu-koc-biryani.png',      label: 'KOC Biryani'     },
+    { file: 'menu-rice-box.png',         label: 'Rice Box'        },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let TOKEN    = '';
+let fileSHAs = {};   // filename → sha (needed for GitHub updates)
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────────────────────────────────────────────
+function toast(msg, type = 'info', duration = 4000) {
+    const icons = { success:'fas fa-check-circle', error:'fas fa-exclamation-circle', info:'fas fa-info-circle' };
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<i class="${icons[type]}"></i><span>${msg}</span>`;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), duration);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  LOG
+// ─────────────────────────────────────────────────────────────────────────────
+function log(msg, cls = 'inf') {
+    const log  = document.getElementById('activity-log');
+    const ts   = new Date().toLocaleTimeString();
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `<span class="ts">[${ts}]</span> <span class="${cls}">${msg}</span>`;
+    log.prepend(entry);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GITHUB API HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+async function ghFetch(path, options = {}) {
+    const url = `https://api.github.com/repos/${REPO}/${path}`;
+    const res = await fetch(url, {
+        ...options,
+        headers: {
+            'Authorization': `Bearer ${TOKEN}`,
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+            ...(options.headers || {}),
+        }
+    });
+    return res;
+}
+
+async function getFileSHA(filename) {
+    try {
+        const res  = await ghFetch(`contents/${filename}?ref=${BRANCH}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.sha || null;
+    } catch { return null; }
+}
+
+async function uploadFile(filename, base64Content, message) {
+    const sha  = fileSHAs[filename] || await getFileSHA(filename);
+    const body = {
+        message,
+        content: base64Content,
+        branch: BRANCH,
+    };
+    if (sha) body.sha = sha;
+
+    const res  = await ghFetch(`contents/${filename}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Upload failed');
+    fileSHAs[filename] = data.content.sha;
+    return data;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  AUTH
+// ─────────────────────────────────────────────────────────────────────────────
+async function connectGitHub() {
+    const input = document.getElementById('token-input');
+    const token = input.value.trim();
+    if (!token) { toast('Please enter a token.', 'error'); return; }
+
+    const btn = document.getElementById('connect-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Verifying…';
+
+    TOKEN = token;
+
+    try {
+        const res = await fetch(`https://api.github.com/repos/${REPO}`, {
+            headers: { 'Authorization': `Bearer ${TOKEN}` }
+        });
+
+        if (res.status === 401) throw new Error('Invalid token — check permissions.');
+        if (res.status === 404) throw new Error('Repo not found — ensure token has access.');
+        if (!res.ok) throw new Error(`GitHub error: ${res.status}`);
+
+        setConnected(true);
+        input.value = '';
+        toast('Connected to GitHub ✓', 'success');
+        log(`Connected to ${REPO}`, 'ok');
+        await buildImageGrid();
+
+    } catch (err) {
+        TOKEN = '';
+        setConnected(false);
+        toast(err.message, 'error');
+        log(err.message, 'err');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plug"></i> Connect';
+    }
+}
+
+function disconnect() {
+    TOKEN = '';
+    fileSHAs = {};
+    setConnected(false);
+    document.getElementById('image-grid').innerHTML = '';
+    document.getElementById('manager-section').style.display = 'none';
+    log('Disconnected.', 'inf');
+    toast('Disconnected.', 'info');
+}
+
+function setConnected(ok) {
+    const dot  = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    const disc = document.getElementById('disconnect-btn');
+
+    dot.className  = `dot ${ok ? 'connected' : ''}`;
+    text.textContent = ok ? `Connected — ${REPO}` : 'Not connected';
+    disc.style.display = ok ? 'inline-block' : 'none';
+    document.getElementById('manager-section').style.display = ok ? 'block' : 'none';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  IMAGE GRID
+// ─────────────────────────────────────────────────────────────────────────────
+async function buildImageGrid() {
+    const grid = document.getElementById('image-grid');
+    grid.innerHTML = '';
+
+    log('Checking current image status…');
+
+    for (const { file, label } of MENU_IMAGES) {
+        const sha  = await getFileSHA(file);
+        if (sha) fileSHAs[file] = sha;
+
+        const card = createCard(file, label, sha);
+        grid.appendChild(card);
+    }
+
+    log('Image status loaded.', 'ok');
+}
+
+function rawUrl(file) {
+    return `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${file}?t=${Date.now()}`;
+}
+
+function createCard(file, label, sha) {
+    const exists = !!sha;
+
+    const card = document.createElement('div');
+    card.className = 'image-card';
+    card.id = `card-${file.replace(/[^a-z0-9]/gi,'-')}`;
+
+    card.innerHTML = `
+        <div class="thumb-wrap">
+            ${exists
+                ? `<img src="${rawUrl(file)}" alt="${label}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+                : ''
+            }
+            <div class="no-image" style="display:${exists?'none':'flex'}">
+                <i class="fas fa-image"></i>
+                <span>Not yet uploaded</span>
+            </div>
+            <span class="status-pill ${exists?'live':'missing'}">${exists?'Live':'Missing'}</span>
+        </div>
+        <div class="card-body">
+            <div class="card-label">${label}</div>
+            <div class="card-file">${file}</div>
+
+            <div class="drop-zone" id="drop-${file}" title="Click or drag an image">
+                <input type="file" accept="image/*" onchange="handleFileSelect('${file}','${label}',this)">
+                <i class="fas fa-cloud-upload-alt"></i>
+                ${exists ? 'Click or drag to <strong>replace</strong>' : 'Click or drag to <strong>upload</strong>'}
+            </div>
+
+            <div class="card-actions">
+                <button class="btn btn-sm" id="upload-btn-${file}" disabled
+                    onclick="uploadSelected('${file}','${label}')">
+                    <i class="fas fa-upload"></i> Upload
+                </button>
+                ${exists ? `
+                <a class="btn btn-sm" href="${rawUrl(file)}" target="_blank" rel="noopener"
+                    style="background:var(--surface);color:var(--orange);border:1px solid var(--border);text-decoration:none;">
+                    <i class="fas fa-external-link-alt"></i> View
+                </a>` : ''}
+            </div>
+        </div>
+    `;
+
+    // drag events
+    const dz = card.querySelector('.drop-zone');
+    dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+    dz.addEventListener('drop', e => {
+        e.preventDefault();
+        dz.classList.remove('drag-over');
+        const fileInput = dz.querySelector('input[type="file"]');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            handleFileSelect(file, label, fileInput);
+        }
+    });
+
+    return card;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  FILE SELECTION & UPLOAD
+// ─────────────────────────────────────────────────────────────────────────────
+const pendingFiles = {};
+
+function handleFileSelect(targetFile, label, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        toast('Please select an image file.', 'error');
+        return;
+    }
+
+    pendingFiles[targetFile] = file;
+
+    const btn = document.getElementById(`upload-btn-${targetFile}`);
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fas fa-upload"></i> Upload "${file.name}"`;
+
+    log(`Selected: ${file.name} (${(file.size/1024).toFixed(1)} KB) for "${label}"`);
+}
+
+async function uploadSelected(targetFile, label) {
+    const file = pendingFiles[targetFile];
+    if (!file) { toast('No file selected.', 'error'); return; }
+
+    const btn = document.getElementById(`upload-btn-${targetFile}`);
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Uploading…';
+
+    try {
+        const base64 = await fileToBase64(file);
+        const msg    = `Update ${targetFile} via admin panel`;
+
+        await uploadFile(targetFile, base64, msg);
+
+        toast(`"${label}" updated successfully ✓`, 'success');
+        log(`Uploaded ${targetFile} → ${label}`, 'ok');
+
+        delete pendingFiles[targetFile];
+
+        // refresh the card thumbnail
+        const cardId = `card-${targetFile.replace(/[^a-z0-9]/gi,'-')}`;
+        const card   = document.getElementById(cardId);
+        const img    = card.querySelector('img');
+        const noImg  = card.querySelector('.no-image');
+        const pill   = card.querySelector('.status-pill');
+
+        if (img) {
+            img.src = rawUrl(targetFile);
+            img.style.display = 'block';
+        } else {
+            const newImg = document.createElement('img');
+            newImg.src = rawUrl(targetFile);
+            newImg.alt = label;
+            newImg.onerror = () => { newImg.style.display='none'; if(noImg) noImg.style.display='flex'; };
+            card.querySelector('.thumb-wrap').prepend(newImg);
+        }
+        if (noImg)  noImg.style.display = 'none';
+        if (pill) { pill.textContent = 'Live'; pill.className = 'status-pill live'; }
+
+        btn.innerHTML = '<i class="fas fa-upload"></i> Upload';
+
+    } catch (err) {
+        toast(`Upload failed: ${err.message}`, 'error');
+        log(`Error uploading ${targetFile}: ${err.message}`, 'err');
+        btn.disabled  = false;
+        btn.innerHTML = '<i class="fas fa-upload"></i> Retry';
+    }
+}
+
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  ENTER KEY on token input
+// ─────────────────────────────────────────────────────────────────────────────
+document.getElementById('token-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') connectGitHub();
+});
+</script>
+
+</body>
+</html>
