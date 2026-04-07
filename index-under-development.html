@@ -25,6 +25,43 @@
             font-family: 'Lato', sans-serif;
         }
 
+        /* ── PRELOADER ── */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background: #0a0a0a;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity .5s ease, visibility .5s ease;
+        }
+        #preloader.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .preloader-spinner {
+            width: 56px;
+            height: 56px;
+            border: 5px solid rgba(255,106,0,.15);
+            border-top-color: var(--orange);
+            border-radius: 50%;
+            animation: preloader-spin .8s linear infinite;
+        }
+        .preloader-text {
+            margin-top: 1.25rem;
+            font-family: 'Righteous', cursive;
+            color: var(--orange);
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            opacity: .85;
+        }
+        @keyframes preloader-spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* ── HEADER ── */
         header {
             display: flex;
@@ -39,6 +76,15 @@
         }
 
         .logo-wrap { display: flex; align-items: center; gap: 14px; }
+
+        .logo-img {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--orange);
+            flex-shrink: 0;
+        }
 
         .halal-badge {
             width: 46px; height: 46px;
@@ -215,10 +261,29 @@
             letter-spacing: .3px;
         }
 
+        /* PC: Grid layout */
         .menu-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        /* Large screens: 3 columns */
+        @media (min-width: 1100px) {
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Mobile: single column full width */
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            #menu {
+                padding: 3rem .75rem;
+            }
         }
 
         .menu-panel {
@@ -307,9 +372,16 @@
 </head>
 <body>
 
+<!-- PRELOADER -->
+<div id="preloader">
+    <div class="preloader-spinner"></div>
+    <div class="preloader-text">LOADING…</div>
+</div>
+
 <!-- HEADER -->
 <header>
     <div class="logo-wrap">
+        <img id="header-logo" class="logo-img" src="Logo.png" alt="Kebab O'Clock Logo">
         <div class="halal-badge"><span>حلال</span>HALAL</div>
         <span class="logo-text">Kebab O'Clock</span>
     </div>
@@ -427,35 +499,185 @@
 <script>
     const REPO   = 'kebaboclock/kebaboclock';
     const BRANCH = 'main';
+    const IMAGE_DIR = 'imagesdep';
 
-    const menuImages = [
-        { file: 'menu-grilled-tastic.png',   label: 'Grilled-Tastic'  },
-        { file: 'menu-beefy-tastic.png',     label: 'Beefy-Tastic'    },
-        { file: 'menu-nashville-fire.png',   label: 'Nashville-Fire'  },
-        { file: 'menu-wrap-tastic.png',      label: 'Wrap-Tastic'     },
-        { file: 'menu-chicken-chips.png',    label: 'Chicken & Chips' },
-        { file: 'menu-don-shawarma.png',     label: 'Don-Shawarma'    },
-        { file: 'menu-koc-biryani.png',      label: 'KOC Biryani'     },
-        { file: 'menu-rice-box.png',         label: 'Rice Box'        },
-    ];
+    // ── Preload tracker ──
+    let totalAssets = 0;
+    let loadedAssets = 0;
+    let preloaderDone = false;
 
-    const grid = document.getElementById('menu-image-grid');
+    function assetLoaded() {
+        loadedAssets++;
+        if (loadedAssets >= totalAssets && !preloaderDone) {
+            preloaderDone = true;
+            document.getElementById('preloader').classList.add('hidden');
+        }
+    }
 
-    menuImages.forEach(({ file, label }) => {
-        const panel = document.createElement('div');
-        panel.className = 'menu-panel';
+    function assetError() {
+        // Count errors as loaded so we don't block forever
+        assetLoaded();
+    }
 
-        const img = document.createElement('img');
-        img.src     = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${file}`;
-        img.alt     = label;
-        img.loading = 'lazy';
+    // ── Logo: try imagesdep/logo.png first, fallback to Logo.png ──
+    function loadLogo() {
+        const logoEl = document.getElementById('header-logo');
+        const customLogoUrl = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${IMAGE_DIR}/logo.png?t=${Date.now()}`;
 
-        // hide the card entirely if image isn't uploaded yet
-        img.onerror = () => { panel.style.display = 'none'; };
+        totalAssets++; // logo counts
 
-        panel.appendChild(img);
-        grid.appendChild(panel);
-    });
+        const testImg = new Image();
+        testImg.onload = () => {
+            logoEl.src = customLogoUrl;
+            assetLoaded();
+        };
+        testImg.onerror = () => {
+            logoEl.src = 'Logo.png';
+            // Still need to wait for local Logo.png
+            logoEl.onload = assetLoaded;
+            logoEl.onerror = assetError;
+        };
+        testImg.src = customLogoUrl;
+    }
+
+    // ── Preload background images ──
+    function preloadBackgrounds() {
+        const bgImages = ['Backdrop.jpg'];
+        bgImages.forEach(src => {
+            totalAssets++;
+            const img = new Image();
+            img.onload = assetLoaded;
+            img.onerror = assetError;
+            img.src = src;
+        });
+    }
+
+    // ── Load menu images from imagesdep/ via GitHub directory listing ──
+    async function loadMenuImages() {
+        const grid = document.getElementById('menu-image-grid');
+
+        try {
+            // Try to get order.json first for ordering
+            let orderedFiles = null;
+            try {
+                const orderRes = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/${IMAGE_DIR}/order.json?t=${Date.now()}`);
+                if (orderRes.ok) {
+                    orderedFiles = await orderRes.json();
+                }
+            } catch(e) { /* no order.json, that's fine */ }
+
+            // Get directory listing from GitHub API (no auth needed for public repos)
+            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${IMAGE_DIR}?ref=${BRANCH}`);
+            if (!res.ok) throw new Error('Could not load images');
+
+            const files = await res.json();
+
+            // Filter to image files only, exclude logo.png and order.json
+            let imageFiles = files.filter(f =>
+                f.type === 'file' &&
+                /\.(png|jpg|jpeg|webp|gif)$/i.test(f.name) &&
+                f.name.toLowerCase() !== 'logo.png'
+            );
+
+            // Sort by order.json if available, otherwise alphabetically
+            if (orderedFiles && Array.isArray(orderedFiles)) {
+                imageFiles.sort((a, b) => {
+                    const idxA = orderedFiles.indexOf(a.name);
+                    const idxB = orderedFiles.indexOf(b.name);
+                    if (idxA === -1 && idxB === -1) return a.name.localeCompare(b.name);
+                    if (idxA === -1) return 1;
+                    if (idxB === -1) return -1;
+                    return idxA - idxB;
+                });
+            } else {
+                imageFiles.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            if (imageFiles.length === 0) {
+                // Fallback: load from root-level menu-*.png files
+                await loadFallbackImages(grid);
+                return;
+            }
+
+            // Add each image to preload count and render
+            imageFiles.forEach(f => {
+                totalAssets++;
+                const panel = document.createElement('div');
+                panel.className = 'menu-panel';
+
+                const img = document.createElement('img');
+                img.src = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${IMAGE_DIR}/${f.name}?t=${Date.now()}`;
+                img.alt = f.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+                img.onload = assetLoaded;
+                img.onerror = () => {
+                    panel.style.display = 'none';
+                    assetError();
+                };
+
+                panel.appendChild(img);
+                grid.appendChild(panel);
+            });
+
+        } catch (err) {
+            // Fallback: load root-level menu images
+            await loadFallbackImages(grid);
+        }
+    }
+
+    // Fallback: original hardcoded menu images from repo root
+    async function loadFallbackImages(grid) {
+        const menuImages = [
+            { file: 'menu-grilled-tastic.png',   label: 'Grilled-Tastic'  },
+            { file: 'menu-beefy-tastic.png',     label: 'Beefy-Tastic'    },
+            { file: 'menu-nashville-fire.png',   label: 'Nashville-Fire'  },
+            { file: 'menu-wrap-tastic.png',      label: 'Wrap-Tastic'     },
+            { file: 'menu-chicken-chips.png',    label: 'Chicken & Chips' },
+            { file: 'menu-don-shawarma.png',     label: 'Don-Shawarma'    },
+            { file: 'menu-koc-biryani.png',      label: 'KOC Biryani'     },
+            { file: 'menu-rice-box.png',         label: 'Rice Box'        },
+        ];
+
+        menuImages.forEach(({ file, label }) => {
+            totalAssets++;
+            const panel = document.createElement('div');
+            panel.className = 'menu-panel';
+
+            const img = document.createElement('img');
+            img.src = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${file}`;
+            img.alt = label;
+            img.onload = assetLoaded;
+            img.onerror = () => {
+                panel.style.display = 'none';
+                assetError();
+            };
+
+            panel.appendChild(img);
+            grid.appendChild(panel);
+        });
+    }
+
+    // ── Initialize ──
+    async function init() {
+        preloadBackgrounds();
+        loadLogo();
+        await loadMenuImages();
+
+        // Safety timeout: force remove preloader after 12s no matter what
+        setTimeout(() => {
+            if (!preloaderDone) {
+                preloaderDone = true;
+                document.getElementById('preloader').classList.add('hidden');
+            }
+        }, 12000);
+
+        // If there were 0 assets (e.g. no images at all), remove preloader now
+        if (totalAssets === 0) {
+            preloaderDone = true;
+            document.getElementById('preloader').classList.add('hidden');
+        }
+    }
+
+    init();
 </script>
 
 </body>
