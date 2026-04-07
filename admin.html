@@ -757,7 +757,8 @@ async function getFileSHA(filepath) {
 }
 
 async function uploadFile(filepath, base64Content, message) {
-    const sha  = fileSHAs[filepath] || await getFileSHA(filepath);
+    // Always get a fresh SHA for replace operations to avoid 409 conflicts
+    const sha  = await getFileSHA(filepath);
     const body = {
         message,
         content: base64Content,
@@ -772,7 +773,10 @@ async function uploadFile(filepath, base64Content, message) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Upload failed');
-    fileSHAs[filepath] = data.content.sha;
+    // Store the new SHA returned by GitHub for the next operation
+    if (data.content && data.content.sha) {
+        fileSHAs[filepath] = data.content.sha;
+    }
     return data;
 }
 
@@ -1115,9 +1119,6 @@ async function handleReplace(filename, input) {
     if (existingImg) existingImg.src = localPreviewUrl;
 
     try {
-        // Always fetch the latest SHA so we never send a stale one (avoids 409 Conflict)
-        fileSHAs[filepath] = await getFileSHA(filepath);
-
         const base64 = await fileToBase64(file);
         await uploadFile(filepath, base64, `Replace ${filename} via admin panel`);
         toast(`${filename} replaced ✓`, 'success');
