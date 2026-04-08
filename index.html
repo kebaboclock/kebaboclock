@@ -392,35 +392,16 @@
         </div>
         <div class="hero-meta">
             <span><i class="fas fa-star"></i> 4.8 Rating</span>
-            <span><i class="fas fa-clock"></i> 12PM – 2AM Daily</span>
+            <span id="hero-hours-meta"><i class="fas fa-clock"></i> 12PM – 2AM Daily</span>
             <span><i class="fas fa-certificate"></i> Halal Certified</span>
         </div>
     </div>
 </section>
 
-<!-- INFO TICKER — duplicated content for seamless loop -->
+<!-- INFO TICKER — populated dynamically from site-config.json -->
 <div class="info-ticker">
-    <span class="ticker-track">
-        <i class="fas fa-certificate"></i>&nbsp; HALAL CERTIFIED
-        <span class="sep">•</span>
-        <i class="fas fa-clock"></i>&nbsp; OPEN 12PM – 2AM EVERY DAY
-        <span class="sep">•</span>
-        <i class="fas fa-phone-alt"></i>&nbsp; 07438 772056
-        <span class="sep">•</span>
-        <i class="fas fa-map-marker-alt"></i>&nbsp; 476 GREAT WEST ROAD, HOUNSLOW TW5 0TA
-        <span class="sep">•</span>
-        <i class="fas fa-fire"></i>&nbsp; GRILLED &nbsp;•&nbsp; SMASHED &nbsp;•&nbsp; SHAWARMA &nbsp;•&nbsp; WRAPS &nbsp;•&nbsp; BIRYANI
-        <span class="sep">•</span>
-        <i class="fas fa-certificate"></i>&nbsp; HALAL CERTIFIED
-        <span class="sep">•</span>
-        <i class="fas fa-clock"></i>&nbsp; OPEN 12PM – 2AM EVERY DAY
-        <span class="sep">•</span>
-        <i class="fas fa-phone-alt"></i>&nbsp; 07438 772056
-        <span class="sep">•</span>
-        <i class="fas fa-map-marker-alt"></i>&nbsp; 476 GREAT WEST ROAD, HOUNSLOW TW5 0TA
-        <span class="sep">•</span>
-        <i class="fas fa-fire"></i>&nbsp; GRILLED &nbsp;•&nbsp; SMASHED &nbsp;•&nbsp; SHAWARMA &nbsp;•&nbsp; WRAPS &nbsp;•&nbsp; BIRYANI
-        <span class="sep">•</span>
+    <span class="ticker-track" id="ticker-track">
+        <!-- populated by JS -->
     </span>
 </div>
 
@@ -436,27 +417,8 @@
     <div class="contact-inner">
         <h2>Come Visit Us</h2>
         <p>Walk in, sit down, or give us a call — we're open every single day.</p>
-        <div class="contact-cards">
-            <a class="contact-card" href="https://maps.app.goo.gl/BQyKUCf2AcjfTWvT9" target="_blank" rel="noopener">
-                <i class="fas fa-map-marker-alt"></i>
-                <div class="cc-label">Address</div>
-                <div class="cc-value">476 Great West Road<br>Hounslow, TW5 0TA</div>
-            </a>
-            <a class="contact-card" href="tel:07438772056">
-                <i class="fas fa-phone-alt"></i>
-                <div class="cc-label">Phone</div>
-                <div class="cc-value">07438 772056</div>
-            </a>
-            <div class="contact-card">
-                <i class="fas fa-clock"></i>
-                <div class="cc-label">Hours</div>
-                <div class="cc-value">Mon – Sun<br>12PM til 2AM</div>
-            </div>
-            <div class="contact-card">
-                <i class="fas fa-certificate"></i>
-                <div class="cc-label">Certification</div>
-                <div class="cc-value">100% Halal<br>Certified</div>
-            </div>
+        <div class="contact-cards" id="contact-cards">
+            <!-- populated by JS -->
         </div>
     </div>
 </section>
@@ -464,18 +426,32 @@
 <!-- FOOTER -->
 <footer>
     <span class="footer-brand">Kebab O'Clock</span>
-    <div class="footer-social">
+    <div class="footer-social" id="footer-social">
         <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
         <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
         <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
     </div>
-    <span class="footer-copy">© 2025 Kebab O'Clock. All rights reserved.</span>
+    <span class="footer-copy" id="footer-copy">© 2025 Kebab O'Clock. All rights reserved.</span>
 </footer>
 
 <script>
     const REPO   = 'kebaboclock/kebaboclock';
     const BRANCH = 'main';
     const IMAGE_DIR = 'imagesdep';
+
+    // Default site config — used if site-config.json doesn't exist yet
+    const DEFAULT_CONFIG = {
+        ticker: "HALAL CERTIFIED • OPEN 12PM – 2AM EVERY DAY • 07438 772056 • 476 GREAT WEST ROAD, HOUNSLOW TW5 0TA • GRILLED • SMASHED • SHAWARMA • WRAPS • BIRYANI",
+        address: "476 Great West Road\nHounslow, TW5 0TA",
+        phone: "07438 772056",
+        hours: "Mon – Sun\n12PM til 2AM",
+        mapsUrl: "https://maps.app.goo.gl/BQyKUCf2AcjfTWvT9",
+        certification: "100% Halal\nCertified",
+        instagram: "#",
+        facebook: "#",
+        tiktok: "#",
+        footerCopy: "© 2025 Kebab O'Clock. All rights reserved."
+    };
 
     // ── Preload tracker ──
     let totalAssets = 0;
@@ -491,16 +467,94 @@
     }
 
     function assetError() {
-        // Count errors as loaded so we don't block forever
         assetLoaded();
     }
 
-    // ── Logo: try imagesdep/logo.png first, fallback to Logo.png ──
+    // ── Apply site config to the page ──
+    function applyConfig(cfg) {
+        // Ticker
+        const tickerText = cfg.ticker || DEFAULT_CONFIG.ticker;
+        // Split by bullet/separator and build ticker HTML — duplicate for seamless loop
+        const tickerHtml = `${tickerText} <span class="sep">•</span> ${tickerText} <span class="sep">•</span>`;
+        const track = document.getElementById('ticker-track');
+        if (track) track.innerHTML = tickerHtml;
+
+        // Contact cards
+        const cards = document.getElementById('contact-cards');
+        if (cards) {
+            const addr    = (cfg.address    || DEFAULT_CONFIG.address).replace(/\n/g, '<br>');
+            const phone   = cfg.phone       || DEFAULT_CONFIG.phone;
+            const hours   = (cfg.hours      || DEFAULT_CONFIG.hours).replace(/\n/g, '<br>');
+            const cert    = (cfg.certification || DEFAULT_CONFIG.certification).replace(/\n/g, '<br>');
+            const mapsUrl = cfg.mapsUrl     || DEFAULT_CONFIG.mapsUrl;
+
+            cards.innerHTML = `
+                <a class="contact-card" href="${mapsUrl}" target="_blank" rel="noopener">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div class="cc-label">Address</div>
+                    <div class="cc-value">${addr}</div>
+                </a>
+                <a class="contact-card" href="tel:${phone.replace(/\s/g,'')}">
+                    <i class="fas fa-phone-alt"></i>
+                    <div class="cc-label">Phone</div>
+                    <div class="cc-value">${phone}</div>
+                </a>
+                <div class="contact-card">
+                    <i class="fas fa-clock"></i>
+                    <div class="cc-label">Hours</div>
+                    <div class="cc-value">${hours}</div>
+                </div>
+                <div class="contact-card">
+                    <i class="fas fa-certificate"></i>
+                    <div class="cc-label">Certification</div>
+                    <div class="cc-value">${cert}</div>
+                </div>
+            `;
+        }
+
+        // Social links
+        const social = document.getElementById('footer-social');
+        if (social) {
+            social.innerHTML = `
+                <a href="${cfg.instagram || '#'}" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="${cfg.facebook  || '#'}" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                <a href="${cfg.tiktok    || '#'}" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+            `;
+        }
+
+        // Footer copy
+        const fc = document.getElementById('footer-copy');
+        if (fc) fc.textContent = cfg.footerCopy || DEFAULT_CONFIG.footerCopy;
+
+        // Hero hours meta
+        const heroHours = document.getElementById('hero-hours-meta');
+        if (heroHours && cfg.hours) {
+            const hoursOneLine = cfg.hours.replace(/\n/g, ' ');
+            heroHours.innerHTML = `<i class="fas fa-clock"></i> ${hoursOneLine}`;
+        }
+    }
+
+    // ── Load site config from GitHub ──
+    async function loadSiteConfig() {
+        try {
+            const res = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/site-config.json?t=${Date.now()}`);
+            if (res.ok) {
+                const cfg = await res.json();
+                applyConfig(cfg);
+            } else {
+                applyConfig(DEFAULT_CONFIG);
+            }
+        } catch(e) {
+            applyConfig(DEFAULT_CONFIG);
+        }
+    }
+
+    // ── Logo ──
     function loadLogo() {
         const logoEl = document.getElementById('header-logo');
         const customLogoUrl = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${IMAGE_DIR}/logo.png?t=${Date.now()}`;
 
-        totalAssets++; // logo counts
+        totalAssets++;
 
         const testImg = new Image();
         testImg.onload = () => {
@@ -509,7 +563,6 @@
         };
         testImg.onerror = () => {
             logoEl.src = 'Logo.png';
-            // Still need to wait for local Logo.png
             logoEl.onload = assetLoaded;
             logoEl.onerror = assetError;
         };
@@ -533,29 +586,25 @@
         const grid = document.getElementById('menu-image-grid');
 
         try {
-            // Try to get order.json first for ordering
             let orderedFiles = null;
             try {
                 const orderRes = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/${IMAGE_DIR}/order.json?t=${Date.now()}`);
                 if (orderRes.ok) {
                     orderedFiles = await orderRes.json();
                 }
-            } catch(e) { /* no order.json, that's fine */ }
+            } catch(e) { /* no order.json */ }
 
-            // Get directory listing from GitHub API (no auth needed for public repos)
             const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${IMAGE_DIR}?ref=${BRANCH}`);
             if (!res.ok) throw new Error('Could not load images');
 
             const files = await res.json();
 
-            // Filter to image files only, exclude logo.png and order.json
             let imageFiles = files.filter(f =>
                 f.type === 'file' &&
                 /\.(png|jpg|jpeg|webp|gif)$/i.test(f.name) &&
                 f.name.toLowerCase() !== 'logo.png'
             );
 
-            // Sort by order.json if available, otherwise alphabetically
             if (orderedFiles && Array.isArray(orderedFiles)) {
                 imageFiles.sort((a, b) => {
                     const idxA = orderedFiles.indexOf(a.name);
@@ -570,12 +619,10 @@
             }
 
             if (imageFiles.length === 0) {
-                // Fallback: load from root-level menu-*.png files
                 await loadFallbackImages(grid);
                 return;
             }
 
-            // Add each image to preload count and render
             imageFiles.forEach(f => {
                 totalAssets++;
                 const panel = document.createElement('div');
@@ -595,12 +642,10 @@
             });
 
         } catch (err) {
-            // Fallback: load root-level menu images
             await loadFallbackImages(grid);
         }
     }
 
-    // Fallback: original hardcoded menu images from repo root
     async function loadFallbackImages(grid) {
         const menuImages = [
             { file: 'menu-grilled-tastic.png',   label: 'Grilled-Tastic'  },
@@ -634,11 +679,14 @@
 
     // ── Initialize ──
     async function init() {
+        // Load config first (fast, no asset counting)
+        await loadSiteConfig();
+
         preloadBackgrounds();
         loadLogo();
         await loadMenuImages();
 
-        // Safety timeout: force remove preloader after 12s no matter what
+        // Safety timeout: force remove preloader after 12s
         setTimeout(() => {
             if (!preloaderDone) {
                 preloaderDone = true;
@@ -646,7 +694,6 @@
             }
         }, 12000);
 
-        // If there were 0 assets (e.g. no images at all), remove preloader now
         if (totalAssets === 0) {
             preloaderDone = true;
             document.getElementById('preloader').classList.add('hidden');
