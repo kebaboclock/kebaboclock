@@ -19,6 +19,7 @@
             --muted: #6b7280;
             --green: #22c55e;
             --red: #ef4444;
+            --yellow: #f59e0b;
         }
 
         html { scroll-behavior: smooth; }
@@ -118,7 +119,7 @@
             align-items: center;
         }
 
-        input[type="password"], input[type="text"] {
+        input[type="password"], input[type="text"], input[type="url"], textarea {
             flex: 1;
             min-width: 220px;
             background: var(--surface);
@@ -131,7 +132,12 @@
             outline: none;
             transition: border-color .2s;
         }
-        input:focus { border-color: var(--orange); }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            line-height: 1.6;
+        }
+        input:focus, textarea:focus { border-color: var(--orange); }
 
         .btn {
             background: var(--orange);
@@ -167,6 +173,12 @@
         }
         .btn-outline:hover { border-color: var(--orange); background: rgba(255,106,0,.06); }
 
+        .btn-green {
+            background: var(--green);
+            color: #000;
+        }
+        .btn-green:hover { background: #16a34a; }
+
         /* ── SECTION TITLE ── */
         .section-title {
             font-family: 'Righteous', cursive;
@@ -181,6 +193,104 @@
             flex: 1;
             height: 1px;
             background: var(--border);
+        }
+
+        /* ── SITE CONTENT CARD ── */
+        .content-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-card h3 {
+            font-family: 'Righteous', cursive;
+            color: var(--orange);
+            font-size: 1.05rem;
+            margin-bottom: .35rem;
+        }
+
+        .content-card .field-hint {
+            color: var(--muted);
+            font-size: .8rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .field-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .field-group label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: .4rem;
+        }
+
+        .field-group input, .field-group textarea {
+            width: 100%;
+            min-width: unset;
+        }
+
+        .fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .fields-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ── PENDING CHANGES BANNER ── */
+        /* Replace both .pending-banner blocks with this: */
+        .pending-banner {
+            display: flex;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--yellow);
+            border-radius: 10px;
+            padding: .9rem 1.25rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+            gap: .75rem;
+            font-size: .9rem;
+            font-weight: 600;
+        }
+        .pending-banner.hidden { display: none !important; }
+        .pending-banner i { color: var(--yellow); flex-shrink: 0; }
+        
+        /* ── PUSH BAR ── */
+        .push-bar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-top: 2px solid var(--orange);
+            padding: 1rem 2rem;
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            animation: slide-up .3s ease;
+        }
+        .push-bar.visible { display: flex; }
+
+        @keyframes slide-up {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+
+        .push-bar .bar-text {
+            color: var(--muted);
+            font-size: .85rem;
         }
 
         /* ── BULK UPLOAD ZONE ── */
@@ -440,15 +550,12 @@
         .card-action-btn:hover { background: rgba(255,106,0,.3); border-color: var(--orange); }
         .card-action-btn.danger:hover { background: rgba(239,68,68,.3); border-color: var(--red); }
 
-        /* hidden file input for replace */
-        .replace-input {
-            display: none;
-        }
+        .replace-input { display: none; }
 
         /* ── TOAST ── */
         #toast-container {
             position: fixed;
-            bottom: 1.5rem;
+            bottom: 5rem;
             right: 1.5rem;
             z-index: 999;
             display: flex;
@@ -520,28 +627,21 @@
         /* ── SAVE ORDER BAR ── */
         .save-order-bar {
             display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
             background: var(--surface);
-            border-top: 2px solid var(--orange);
-            padding: 1rem 2rem;
-            z-index: 200;
-            text-align: center;
-            animation: slide-up .3s ease;
+            border: 1px solid var(--orange);
+            border-radius: 10px;
+            padding: .9rem 1.25rem;
+            margin-bottom: 1.25rem;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
-        .save-order-bar.visible { display: block; }
-
-        @keyframes slide-up {
-            from { transform: translateY(100%); }
-            to   { transform: translateY(0); }
-        }
+        .save-order-bar.visible { display: flex; }
 
         .save-order-bar .bar-text {
             color: var(--muted);
             font-size: .85rem;
-            margin-bottom: .5rem;
+            flex: 1;
         }
 
         /* ── RESPONSIVE ── */
@@ -568,6 +668,9 @@
             color: var(--muted);
             cursor: pointer;
         }
+
+        /* bottom padding so push bar doesn't cover content */
+        .push-bar-spacer { height: 5rem; }
     </style>
 </head>
 <body>
@@ -613,11 +716,84 @@
         <p id="auth-hint" style="margin-top:.75rem;font-size:.8rem;"></p>
     </div>
 
-    <!-- ── IMAGE MANAGER ── -->
+    <!-- ── MANAGER ── -->
     <div id="manager-section" style="display:none">
 
-        <!-- LOGO UPLOAD -->
-        <div class="section-title"><i class="fas fa-crown" style="color:var(--orange)"></i> Logo</div>
+        <!-- ═══════════════════════════════════════════════
+             SITE CONTENT EDITOR
+        ═══════════════════════════════════════════════ -->
+        <div class="section-title"><i class="fas fa-edit" style="color:var(--orange)"></i> Site Content</div>
+
+        <p style="color:var(--muted);font-size:.85rem;margin-bottom:1.25rem;">
+            Edit any details below. When you're done making <em>all</em> your changes, hit <strong>Push Changes</strong> once — this writes a single commit so you don't hammer Vercel with reloads.
+        </p>
+
+        <!-- TICKER -->
+        <div class="content-card">
+            <h3><i class="fas fa-scroll"></i> Orange Rotating Strip (Ticker)</h3>
+            <p class="field-hint">This is the scrolling orange text band. Separate items with " • " for spacing.</p>
+            <div class="field-group">
+                <label>Ticker Text</label>
+                <textarea id="cfg-ticker" rows="3" placeholder="HALAL CERTIFIED • OPEN 12PM – 2AM EVERY DAY • 07438 772056 • …" oninput="markContentDirty()"></textarea>
+            </div>
+        </div>
+
+        <!-- CONTACT -->
+        <div class="content-card">
+            <h3><i class="fas fa-map-marker-alt"></i> Contact & Location</h3>
+            <p class="field-hint">These populate the contact cards and footer on the public site. Use a new line (Enter) where you want a line break in the displayed text.</p>
+            <div class="fields-grid">
+                <div class="field-group">
+                    <label>Address (shown in card)</label>
+                    <textarea id="cfg-address" rows="2" placeholder="476 Great West Road&#10;Hounslow, TW5 0TA" oninput="markContentDirty()"></textarea>
+                </div>
+                <div class="field-group">
+                    <label>Google Maps URL</label>
+                    <input type="url" id="cfg-mapsUrl" placeholder="https://maps.app.goo.gl/…" oninput="markContentDirty()">
+                </div>
+                <div class="field-group">
+                    <label>Phone Number</label>
+                    <input type="text" id="cfg-phone" placeholder="07438 772056" oninput="markContentDirty()">
+                </div>
+                <div class="field-group">
+                    <label>Opening Hours</label>
+                    <textarea id="cfg-hours" rows="2" placeholder="Mon – Sun&#10;12PM til 2AM" oninput="markContentDirty()"></textarea>
+                </div>
+                <div class="field-group">
+                    <label>Certification Text</label>
+                    <textarea id="cfg-certification" rows="2" placeholder="100% Halal&#10;Certified" oninput="markContentDirty()"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- SOCIAL & FOOTER -->
+        <div class="content-card">
+            <h3><i class="fas fa-share-alt"></i> Social Links & Footer</h3>
+            <p class="field-hint">Full URLs for social media. Leave as "#" to hide link destination. Footer copy text appears at the bottom of the site.</p>
+            <div class="fields-grid">
+                <div class="field-group">
+                    <label><i class="fab fa-instagram"></i> Instagram URL</label>
+                    <input type="url" id="cfg-instagram" placeholder="https://instagram.com/…" oninput="markContentDirty()">
+                </div>
+                <div class="field-group">
+                    <label><i class="fab fa-facebook"></i> Facebook URL</label>
+                    <input type="url" id="cfg-facebook" placeholder="https://facebook.com/…" oninput="markContentDirty()">
+                </div>
+                <div class="field-group">
+                    <label><i class="fab fa-tiktok"></i> TikTok URL</label>
+                    <input type="url" id="cfg-tiktok" placeholder="https://tiktok.com/@…" oninput="markContentDirty()">
+                </div>
+                <div class="field-group">
+                    <label>Footer Copyright Text</label>
+                    <input type="text" id="cfg-footerCopy" placeholder="© 2025 Kebab O'Clock. All rights reserved." oninput="markContentDirty()">
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════
+             LOGO UPLOAD
+        ═══════════════════════════════════════════════ -->
+        <div class="section-title" style="margin-top:.5rem"><i class="fas fa-crown" style="color:var(--orange)"></i> Logo</div>
         <div class="logo-upload-card">
             <img class="logo-preview" id="logo-preview" src="Logo.png" alt="Current Logo">
             <div class="logo-upload-info">
@@ -636,7 +812,9 @@
             </div>
         </div>
 
-        <!-- BULK UPLOAD -->
+        <!-- ═══════════════════════════════════════════════
+             BULK UPLOAD
+        ═══════════════════════════════════════════════ -->
         <div class="section-title"><i class="fas fa-cloud-upload-alt" style="color:var(--orange)"></i> Upload Images</div>
         <div class="bulk-upload-card">
             <h3>Bulk Upload Menu Images</h3>
@@ -659,52 +837,88 @@
             </div>
         </div>
 
-        <!-- IMAGE ORDERING GRID -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <!-- ═══════════════════════════════════════════════
+             IMAGE ORDERING GRID
+        ═══════════════════════════════════════════════ -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <div class="section-title" style="margin-bottom: 0; flex: 1;"><i class="fas fa-th" style="color:var(--orange)"></i> Manage & Reorder Images</div>
             <button class="btn btn-danger btn-sm" id="delete-all-btn" style="margin-left: 1rem;" onclick="deleteAllImages()">
                 <i class="fas fa-trash-alt"></i> Delete All
             </button>
         </div>
         <p style="color:var(--muted); font-size:.85rem; margin-bottom:1rem;">
-            Drag and drop cards to reorder. Use the buttons to replace or delete specific images.
+            Drag and drop cards to reorder. Changes are staged locally — hit <strong>Save Order</strong> to write to GitHub once.
         </p>
-        <div class="image-grid" id="image-grid">
-            <!-- Cards injected by JS -->
-        </div>
 
-        <!-- SAVE ORDER BAR -->
+        <!-- Inline save-order bar (no longer fixed/floating) -->
         <div class="save-order-bar" id="save-order-bar">
             <div class="bar-text">You've changed the image order</div>
-            <button class="btn" onclick="saveOrder()"><i class="fas fa-save"></i> Save Order</button>
-            <button class="btn btn-outline btn-sm" style="margin-left:.5rem;" onclick="cancelOrderChange()"><i class="fas fa-undo"></i> Revert</button>
+            <button class="btn btn-sm" onclick="saveOrder()"><i class="fas fa-save"></i> Save Order</button>
+            <button class="btn btn-outline btn-sm" onclick="cancelOrderChange()"><i class="fas fa-undo"></i> Revert</button>
+        </div>
+
+        <div class="image-grid" id="image-grid">
+            <!-- Cards injected by JS -->
         </div>
 
         <!-- Activity Log -->
         <div class="section-title" style="margin-top:1rem"><i class="fas fa-terminal" style="color:var(--orange)"></i> Activity Log</div>
         <div id="activity-log"><div class="log-entry"><span class="inf">Ready.</span></div></div>
 
+        <div class="push-bar-spacer"></div>
+
     </div><!-- /manager-section -->
 
 </main>
+
+<!-- ── PUSH CHANGES BAR (fixed bottom, only shown when content is dirty) ── -->
+<div class="push-bar" id="push-bar">
+    <span class="bar-text"><i class="fas fa-exclamation-circle" style="color:var(--yellow)"></i> You have unsaved site content changes</span>
+    <button class="btn btn-green" id="push-btn" onclick="pushAllChanges()">
+        <i class="fas fa-cloud-upload-alt"></i> Push Changes
+    </button>
+    <button class="btn btn-outline btn-sm" onclick="revertContentChanges()">
+        <i class="fas fa-undo"></i> Revert
+    </button>
+</div>
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
 //  CONFIGURATION
 // ─────────────────────────────────────────────────────────────────────────────
-const REPO      = 'kebaboclock/kebaboclock';
-const BRANCH    = 'main';
-const IMAGE_DIR = 'imagesdep';
+const REPO       = 'kebaboclock/kebaboclock';
+const BRANCH     = 'main';
+const IMAGE_DIR  = 'imagesdep';
+const CONFIG_FILE = 'site-config.json';
+
+// Default config (fallback if no site-config.json exists yet)
+const DEFAULT_CONFIG = {
+    ticker: "HALAL CERTIFIED • OPEN 12PM – 2AM EVERY DAY • 07438 772056 • 476 GREAT WEST ROAD, HOUNSLOW TW5 0TA • GRILLED • SMASHED • SHAWARMA • WRAPS • BIRYANI",
+    address: "476 Great West Road\nHounslow, TW5 0TA",
+    phone: "07438 772056",
+    hours: "Mon – Sun\n12PM til 2AM",
+    mapsUrl: "https://maps.app.goo.gl/BQyKUCf2AcjfTWvT9",
+    certification: "100% Halal\nCertified",
+    instagram: "#",
+    facebook: "#",
+    tiktok: "#",
+    footerCopy: "© 2025 Kebab O'Clock. All rights reserved."
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  STATE
 // ─────────────────────────────────────────────────────────────────────────────
 let TOKEN          = '';
-let fileSHAs       = {};   // filename → sha
-let currentImages  = [];   // ordered list of filenames in imagesdep
-let originalOrder  = [];   // for detecting changes
-let stagedFiles    = [];   // files waiting for upload
-let pendingLogo    = null; // logo file waiting for upload
+let fileSHAs       = {};
+let currentImages  = [];
+let originalOrder  = [];
+let stagedFiles    = [];
+let pendingLogo    = null;
+
+// Loaded config from GitHub (used for revert)
+let loadedConfig   = { ...DEFAULT_CONFIG };
+// Whether the content form fields have unsaved changes
+let contentDirty   = false;
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  TOAST
@@ -757,13 +971,8 @@ async function getFileSHA(filepath) {
 }
 
 async function uploadFile(filepath, base64Content, message) {
-    // Always get a fresh SHA for replace operations to avoid 409 conflicts
     const sha  = await getFileSHA(filepath);
-    const body = {
-        message,
-        content: base64Content,
-        branch: BRANCH,
-    };
+    const body = { message, content: base64Content, branch: BRANCH };
     if (sha) body.sha = sha;
 
     const res  = await ghFetch(`contents/${filepath}`, {
@@ -773,7 +982,6 @@ async function uploadFile(filepath, base64Content, message) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Upload failed');
-    // Store the new SHA returned by GitHub for the next operation
     if (data.content && data.content.sha) {
         fileSHAs[filepath] = data.content.sha;
     }
@@ -801,7 +1009,7 @@ function rawUrl(filepath) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  AUTH — with localStorage persistence
+//  AUTH
 // ─────────────────────────────────────────────────────────────────────────────
 async function connectGitHub() {
     const input = document.getElementById('token-input');
@@ -823,7 +1031,6 @@ async function connectGitHub() {
         if (res.status === 404) throw new Error('Repo not found — ensure token has access.');
         if (!res.ok) throw new Error(`GitHub error: ${res.status}`);
 
-        // Save to localStorage if checkbox is checked
         if (document.getElementById('remember-token').checked) {
             localStorage.setItem('koc_github_token', TOKEN);
         }
@@ -850,11 +1057,13 @@ function disconnect() {
     fileSHAs = {};
     currentImages = [];
     originalOrder = [];
+    contentDirty = false;
     localStorage.removeItem('koc_github_token');
     setConnected(false);
     document.getElementById('image-grid').innerHTML = '';
     document.getElementById('manager-section').style.display = 'none';
     document.getElementById('save-order-bar').classList.remove('visible');
+    document.getElementById('push-bar').classList.remove('visible');
     log('Disconnected.', 'inf');
     toast('Disconnected.', 'info');
 }
@@ -870,7 +1079,6 @@ function setConnected(ok) {
     document.getElementById('manager-section').style.display = ok ? 'block' : 'none';
 }
 
-// Auto-connect from localStorage on page load
 async function autoConnect() {
     const saved = localStorage.getItem('koc_github_token');
     if (saved) {
@@ -880,11 +1088,14 @@ async function autoConnect() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  REFRESH ALL — load images and logo from imagesdep
+//  REFRESH ALL
 // ─────────────────────────────────────────────────────────────────────────────
 async function refreshAll() {
-    await loadLogoPreview();
-    await buildImageGrid();
+    await Promise.all([
+        loadLogoPreview(),
+        loadSiteConfig(),
+        buildImageGrid()
+    ]);
 }
 
 async function loadLogoPreview() {
@@ -899,7 +1110,112 @@ async function loadLogoPreview() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  IMAGE GRID — from GitHub directory listing
+//  SITE CONFIG — load, populate form, push
+// ─────────────────────────────────────────────────────────────────────────────
+async function loadSiteConfig() {
+    log('Loading site-config.json…');
+    try {
+        const res = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/${CONFIG_FILE}?t=${Date.now()}`);
+        if (res.ok) {
+            const cfg = await res.json();
+            loadedConfig = { ...DEFAULT_CONFIG, ...cfg };
+            log('site-config.json loaded ✓', 'ok');
+        } else {
+            loadedConfig = { ...DEFAULT_CONFIG };
+            log('No site-config.json found — using defaults.', 'inf');
+        }
+    } catch(e) {
+        loadedConfig = { ...DEFAULT_CONFIG };
+        log('Could not load site-config.json — using defaults.', 'inf');
+    }
+    populateConfigForm(loadedConfig);
+    contentDirty = false;
+    updatePushBar();
+}
+
+function populateConfigForm(cfg) {
+    const set = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || '';
+    };
+    set('cfg-ticker',        cfg.ticker);
+    set('cfg-address',       cfg.address);
+    set('cfg-mapsUrl',       cfg.mapsUrl);
+    set('cfg-phone',         cfg.phone);
+    set('cfg-hours',         cfg.hours);
+    set('cfg-certification', cfg.certification);
+    set('cfg-instagram',     cfg.instagram);
+    set('cfg-facebook',      cfg.facebook);
+    set('cfg-tiktok',        cfg.tiktok);
+    set('cfg-footerCopy',    cfg.footerCopy);
+}
+
+function readConfigForm() {
+    const get = id => (document.getElementById(id)?.value || '').trim();
+    return {
+        ticker:        get('cfg-ticker'),
+        address:       get('cfg-address'),
+        mapsUrl:       get('cfg-mapsUrl'),
+        phone:         get('cfg-phone'),
+        hours:         get('cfg-hours'),
+        certification: get('cfg-certification'),
+        instagram:     get('cfg-instagram'),
+        facebook:      get('cfg-facebook'),
+        tiktok:        get('cfg-tiktok'),
+        footerCopy:    get('cfg-footerCopy'),
+    };
+}
+
+function markContentDirty() {
+    contentDirty = true;
+    updatePushBar();
+}
+
+function updatePushBar() {
+    const bar = document.getElementById('push-bar');
+    if (contentDirty) {
+        bar.classList.add('visible');
+    } else {
+        bar.classList.remove('visible');
+    }
+}
+
+function revertContentChanges() {
+    populateConfigForm(loadedConfig);
+    contentDirty = false;
+    updatePushBar();
+    toast('Reverted to last saved values.', 'info');
+}
+
+async function pushAllChanges() {
+    const btn = document.getElementById('push-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Pushing…';
+
+    const cfg = readConfigForm();
+
+    try {
+        const json   = JSON.stringify(cfg, null, 2);
+        const base64 = btoa(unescape(encodeURIComponent(json)));
+        await uploadFile(CONFIG_FILE, base64, 'Update site config via admin panel');
+
+        loadedConfig = { ...cfg };
+        contentDirty = false;
+        updatePushBar();
+
+        toast('Site content pushed to GitHub ✓', 'success');
+        log('site-config.json updated.', 'ok');
+    } catch (err) {
+        toast(`Push failed: ${err.message}`, 'error');
+        log(`Push error: ${err.message}`, 'err');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Push Changes';
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  IMAGE GRID
 // ─────────────────────────────────────────────────────────────────────────────
 async function buildImageGrid() {
     const grid = document.getElementById('image-grid');
@@ -907,35 +1223,27 @@ async function buildImageGrid() {
     log('Loading images from imagesdep…');
 
     try {
-        // Get directory listing
         const res = await ghFetch(`contents/${IMAGE_DIR}?ref=${BRANCH}`);
         if (!res.ok) throw new Error('Could not list imagesdep folder');
 
         const files = await res.json();
 
-        // Filter to image files, exclude logo.png and order.json
         let imageFiles = files.filter(f =>
             f.type === 'file' &&
             /\.(png|jpg|jpeg|webp|gif)$/i.test(f.name) &&
             f.name.toLowerCase() !== 'logo.png'
         );
 
-        // Store SHAs
         imageFiles.forEach(f => { fileSHAs[`${IMAGE_DIR}/${f.name}`] = f.sha; });
-        // Also store order.json SHA if it exists
         const orderFile = files.find(f => f.name === 'order.json');
         if (orderFile) fileSHAs[`${IMAGE_DIR}/order.json`] = orderFile.sha;
 
-        // Try to get order.json
         let orderedNames = null;
         try {
             const orderRes = await fetch(rawUrl(`${IMAGE_DIR}/order.json`));
-            if (orderRes.ok) {
-                orderedNames = await orderRes.json();
-            }
+            if (orderRes.ok) orderedNames = await orderRes.json();
         } catch(e) { /* ignored */ }
 
-        // Sort
         if (orderedNames && Array.isArray(orderedNames)) {
             imageFiles.sort((a, b) => {
                 const idxA = orderedNames.indexOf(a.name);
@@ -952,7 +1260,6 @@ async function buildImageGrid() {
         currentImages = imageFiles.map(f => f.name);
         originalOrder = [...currentImages];
 
-        // Render cards
         currentImages.forEach((filename, idx) => {
             const card = createImageCard(filename, idx);
             grid.appendChild(card);
@@ -996,7 +1303,6 @@ function createImageCard(filename, index) {
         </div>
     `;
 
-    // ── Drag & Drop for reordering ──
     card.addEventListener('dragstart', e => {
         card.classList.add('dragging');
         e.dataTransfer.setData('text/plain', filename);
@@ -1012,9 +1318,7 @@ function createImageCard(filename, index) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         const dragging = document.querySelector('.image-card.dragging');
-        if (dragging && dragging !== card) {
-            card.classList.add('drag-over-card');
-        }
+        if (dragging && dragging !== card) card.classList.add('drag-over-card');
     });
 
     card.addEventListener('dragleave', () => {
@@ -1027,16 +1331,13 @@ function createImageCard(filename, index) {
         const draggedFile = e.dataTransfer.getData('text/plain');
         if (!draggedFile || draggedFile === filename) return;
 
-        // Swap in our array
         const fromIdx = currentImages.indexOf(draggedFile);
         const toIdx   = currentImages.indexOf(filename);
         if (fromIdx === -1 || toIdx === -1) return;
 
-        // Remove and insert at new position
         currentImages.splice(fromIdx, 1);
         currentImages.splice(toIdx, 0, draggedFile);
 
-        // Re-render grid
         renderGrid();
         checkOrderChanged();
     });
@@ -1056,11 +1357,8 @@ function renderGrid() {
 function checkOrderChanged() {
     const changed = JSON.stringify(currentImages) !== JSON.stringify(originalOrder);
     const bar = document.getElementById('save-order-bar');
-    if (changed) {
-        bar.classList.add('visible');
-    } else {
-        bar.classList.remove('visible');
-    }
+    if (changed) bar.classList.add('visible');
+    else bar.classList.remove('visible');
 }
 
 function cancelOrderChange() {
@@ -1112,7 +1410,6 @@ async function handleReplace(filename, input) {
     const filepath = `${IMAGE_DIR}/${filename}`;
     log(`Replacing ${filename}…`);
 
-    // Show local preview immediately so the user sees something changed
     const localPreviewUrl = URL.createObjectURL(file);
     const existingCard = document.querySelector(`.image-card[data-filename="${CSS.escape(filename)}"]`);
     const existingImg  = existingCard ? existingCard.querySelector('img') : null;
@@ -1124,16 +1421,12 @@ async function handleReplace(filename, input) {
         toast(`${filename} replaced ✓`, 'success');
         log(`Replaced ${filename}`, 'ok');
 
-        // Update the img src with a strong cache-buster so the new image is shown
-        // (GitHub CDN can be slow, so we keep the local blob URL for now and
-        //  swap to the remote URL after a short delay to give CDN time to propagate)
         setTimeout(() => {
             if (existingImg) existingImg.src = rawUrl(filepath);
             URL.revokeObjectURL(localPreviewUrl);
         }, 3000);
 
     } catch (err) {
-        // Restore original src on failure
         if (existingImg) existingImg.src = rawUrl(filepath);
         URL.revokeObjectURL(localPreviewUrl);
         toast(`Replace failed: ${err.message}`, 'error');
@@ -1157,12 +1450,11 @@ async function deleteImage(filename) {
         renderGrid();
         checkOrderChanged();
 
-        // Update order.json too
         try {
             const orderJson = JSON.stringify(currentImages, null, 2);
             const base64 = btoa(unescape(encodeURIComponent(orderJson)));
             await uploadFile(`${IMAGE_DIR}/order.json`, base64, 'Update order after delete');
-        } catch(e) { /* order.json update failed, not critical */ }
+        } catch(e) { /* not critical */ }
 
         toast(`${filename} deleted ✓`, 'success');
         log(`Deleted ${filename}`, 'ok');
@@ -1185,8 +1477,8 @@ async function deleteAllImages() {
     log('Deleting all images...');
     let errors = 0;
     const total = currentImages.length;
-    
-    for (const filename of currentImages) {
+
+    for (const filename of [...currentImages]) {
         try {
             await deleteFile(`${IMAGE_DIR}/${filename}`, `Delete all: ${filename} via admin panel`);
         } catch (err) {
@@ -1194,21 +1486,19 @@ async function deleteAllImages() {
             log(`Error deleting ${filename}: ${err.message}`, 'err');
         }
     }
-    
-    // Clear the images list locally
+
     currentImages = [];
     originalOrder = [];
-    
-    // Update order.json too
+
     try {
         const orderJson = JSON.stringify(currentImages, null, 2);
         const base64 = btoa(unescape(encodeURIComponent(orderJson)));
         await uploadFile(`${IMAGE_DIR}/order.json`, base64, 'Update order after delete all');
-    } catch(e) { /* order.json update failed, not critical */ }
-    
+    } catch(e) { /* not critical */ }
+
     renderGrid();
     checkOrderChanged();
-    
+
     if (errors === 0) {
         toast(`Successfully deleted all ${total} images ✓`, 'success');
         log(`Deleted all ${total} images`, 'ok');
@@ -1231,7 +1521,6 @@ function handleLogoSelect(input) {
     }
 
     pendingLogo = file;
-    // Preview
     const reader = new FileReader();
     reader.onload = () => {
         document.getElementById('logo-preview').src = reader.result;
@@ -1265,7 +1554,7 @@ async function uploadLogo() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  BULK UPLOAD — stage multiple files, then upload all at once
+//  BULK UPLOAD
 // ─────────────────────────────────────────────────────────────────────────────
 function handleBulkFiles(fileList) {
     const newFiles = Array.from(fileList).filter(f => f.type.startsWith('image/'));
@@ -1308,7 +1597,6 @@ function removeStagedFile(idx) {
 function clearStaged() {
     stagedFiles = [];
     renderStagedFiles();
-    // Reset the file input
     const input = document.querySelector('#bulk-drop-zone input[type="file"]');
     if (input) input.value = '';
 }
@@ -1331,12 +1619,10 @@ async function uploadAllStaged() {
 
     for (const file of stagedFiles) {
         try {
-            const base64    = await fileToBase64(file);
-            const filepath  = `${IMAGE_DIR}/${file.name}`;
-            const msg       = `Upload ${file.name} via admin panel`;
-            await uploadFile(filepath, base64, msg);
+            const base64   = await fileToBase64(file);
+            const filepath = `${IMAGE_DIR}/${file.name}`;
+            await uploadFile(filepath, base64, `Upload ${file.name} via admin panel`);
 
-            // Add to current images list if not already there
             if (!currentImages.includes(file.name)) {
                 currentImages.push(file.name);
             }
@@ -1351,7 +1637,6 @@ async function uploadAllStaged() {
         progressBar.style.width = `${(done / total) * 100}%`;
     }
 
-    // Update order.json with new list
     try {
         const orderJson = JSON.stringify(currentImages, null, 2);
         const base64 = btoa(unescape(encodeURIComponent(orderJson)));
@@ -1363,7 +1648,6 @@ async function uploadAllStaged() {
     renderStagedFiles();
     renderGrid();
 
-    // Reset file input
     const input = document.querySelector('#bulk-drop-zone input[type="file"]');
     if (input) input.value = '';
 
@@ -1391,7 +1675,7 @@ function fileToBase64(file) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  BULK DROP ZONE — drag events
+//  DRAG EVENTS
 // ─────────────────────────────────────────────────────────────────────────────
 const bulkDrop = document.getElementById('bulk-drop-zone');
 bulkDrop.addEventListener('dragover', e => { e.preventDefault(); bulkDrop.classList.add('drag-over'); });
@@ -1399,12 +1683,9 @@ bulkDrop.addEventListener('dragleave', () => bulkDrop.classList.remove('drag-ove
 bulkDrop.addEventListener('drop', e => {
     e.preventDefault();
     bulkDrop.classList.remove('drag-over');
-    if (e.dataTransfer.files.length) {
-        handleBulkFiles(e.dataTransfer.files);
-    }
+    if (e.dataTransfer.files.length) handleBulkFiles(e.dataTransfer.files);
 });
 
-// LOGO DROP ZONE — drag events
 const logoDrop = document.getElementById('logo-drop-zone');
 logoDrop.addEventListener('dragover', e => { e.preventDefault(); logoDrop.classList.add('drag-over'); });
 logoDrop.addEventListener('dragleave', () => logoDrop.classList.remove('drag-over'));
@@ -1426,7 +1707,7 @@ document.getElementById('token-input').addEventListener('keydown', e => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  INIT — auto-connect from localStorage
+//  INIT
 // ─────────────────────────────────────────────────────────────────────────────
 autoConnect();
 </script>
