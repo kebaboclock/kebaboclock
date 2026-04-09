@@ -970,15 +970,34 @@ async function getFileSHA(filepath) {
 }
 
 async function uploadFile(filepath, base64Content, message) {
-    const sha  = await getFileSHA(filepath);
+    // Use cached SHA if we have it; only hit the API if we don't.
+    // This avoids the "does not match" error caused by re-fetching a stale SHA
+    // when GitHub's metadata hasn't propagated yet after a recent write.
+    let sha = fileSHAs[filepath] ?? await getFileSHA(filepath);
+
     const body = { message, content: base64Content, branch: BRANCH };
     if (sha) body.sha = sha;
 
-    const res  = await ghFetch(`contents/${filepath}`, {
+    let res = await ghFetch(`contents/${filepath}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
     });
+
+    // If GitHub returns 409 Conflict (SHA mismatch), the cache is stale —
+    // clear it, fetch the real SHA, and retry once.
+    if (res.status === 409 || res.status === 422) {
+        delete fileSHAs[filepath];
+        sha = await getFileSHA(filepath);
+        const retryBody = { message, content: base64Content, branch: BRANCH };
+        if (sha) retryBody.sha = sha;
+        res = await ghFetch(`contents/${filepath}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(retryBody),
+        });
+    }
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Upload failed');
     if (data.content && data.content.sha) {
@@ -1280,21 +1299,21 @@ function createImageCard(filename, index) {
     card.dataset.filename = filename;
     card.draggable = true;
 
+    const safeId = `replace-input-${index}`;
+
     card.innerHTML = `
         <div class="thumb-wrap">
             <img src="${rawUrl(filepath)}" alt="${label}">
             <span class="card-order-num">#${index + 1}</span>
             <div class="card-actions-overlay">
-                <button class="card-action-btn" title="Replace" onclick="triggerReplace('${filename}')">
+                <button class="card-action-btn replace-btn" title="Replace">
                     <i class="fas fa-exchange-alt"></i>
                 </button>
-                <button class="card-action-btn danger" title="Delete" onclick="deleteImage('${filename}')">
+                <button class="card-action-btn danger delete-btn" title="Delete">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
-            <input type="file" class="replace-input" accept="image/*"
-                   id="replace-input-${filename}"
-                   onchange="handleReplace('${filename}', this)">
+            <input type="file" class="replace-input" accept="image/*" id="${safeId}" style="display:none">
         </div>
         <div class="card-body">
             <div class="card-label">${label}</div>
@@ -1302,6 +1321,26 @@ function createImageCard(filename, index) {
         </div>
     `;
 
+    // Replace button — stops propagation so drag doesn't interfere
+    const replaceBtn = card.querySelector('.replace-btn');
+    const fileInput  = card.querySelector(`#${safeId}`);
+
+    replaceBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) handleReplace(filename, fileInput);
+    });
+
+    // Delete button
+    card.querySelector('.delete-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        deleteImage(filename);
+    });
+
+    // Drag events
     card.addEventListener('dragstart', e => {
         card.classList.add('dragging');
         e.dataTransfer.setData('text/plain', filename);
