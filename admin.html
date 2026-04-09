@@ -279,9 +279,8 @@
             justify-content: center;
             gap: 1rem;
             flex-wrap: wrap;
-            animation: slide-up .3s ease;
         }
-        .push-bar.visible { display: flex; }
+        .push-bar.visible { display: flex; animation: slide-up .3s ease; }
 
         @keyframes slide-up {
             from { transform: translateY(100%); }
@@ -1420,11 +1419,8 @@ async function handleReplace(filename, input) {
         await uploadFile(filepath, base64, `Replace ${filename} via admin panel`);
         toast(`${filename} replaced ✓`, 'success');
         log(`Replaced ${filename}`, 'ok');
-
-        setTimeout(() => {
-            if (existingImg) existingImg.src = rawUrl(filepath);
-            URL.revokeObjectURL(localPreviewUrl);
-        }, 3000);
+        // Keep the local blob URL — GitHub's CDN can take minutes to propagate,
+        // switching to rawUrl too soon would show the old image again.
 
     } catch (err) {
         if (existingImg) existingImg.src = rawUrl(filepath);
