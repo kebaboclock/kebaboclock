@@ -970,15 +970,34 @@ async function getFileSHA(filepath) {
 }
 
 async function uploadFile(filepath, base64Content, message) {
-    const sha  = await getFileSHA(filepath);
+    // Use cached SHA if we have it; only hit the API if we don't.
+    // This avoids the "does not match" error caused by re-fetching a stale SHA
+    // when GitHub's metadata hasn't propagated yet after a recent write.
+    let sha = fileSHAs[filepath] ?? await getFileSHA(filepath);
+
     const body = { message, content: base64Content, branch: BRANCH };
     if (sha) body.sha = sha;
 
-    const res  = await ghFetch(`contents/${filepath}`, {
+    let res = await ghFetch(`contents/${filepath}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
     });
+
+    // If GitHub returns 409 Conflict (SHA mismatch), the cache is stale —
+    // clear it, fetch the real SHA, and retry once.
+    if (res.status === 409 || res.status === 422) {
+        delete fileSHAs[filepath];
+        sha = await getFileSHA(filepath);
+        const retryBody = { message, content: base64Content, branch: BRANCH };
+        if (sha) retryBody.sha = sha;
+        res = await ghFetch(`contents/${filepath}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(retryBody),
+        });
+    }
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Upload failed');
     if (data.content && data.content.sha) {
