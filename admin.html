@@ -987,10 +987,11 @@ async function connectSupabase(isAuto = false) {
         }
 
         connected = true;
+        await refreshAll();
+        
         setConnected(true);
         toast(isAuto ? 'Session Restored ✓' : 'Authenticated ✓', 'success');
         log('Logged in to Supabase', 'ok');
-        await refreshAll();
 
     } catch (err) {
         connected = false;
@@ -1072,13 +1073,23 @@ async function loadLogoPreview() {
     try {
         const { data } = await supabaseClient.storage.from(BUCKET).list('', { limit: 100 });
         const logoFile = data?.find(f => f.name === 'logo.png');
-        if (logoFile) {
-            preview.src = getPublicUrl(LOGO_PATH);
-        } else {
-            preview.src = 'Logo.png';
-        }
+        await new Promise(resolve => {
+            preview.onload = resolve;
+            preview.onerror = resolve;
+            if (logoFile) {
+                preview.src = getPublicUrl(LOGO_PATH);
+            } else {
+                preview.src = 'Logo.png';
+            }
+            if (preview.complete) resolve();
+        });
     } catch {
-        preview.src = 'Logo.png';
+        await new Promise(resolve => {
+            preview.onload = resolve;
+            preview.onerror = resolve;
+            preview.src = 'Logo.png';
+            if (preview.complete) resolve();
+        });
     }
 }
 
@@ -1246,10 +1257,26 @@ async function buildImageGrid() {
         currentImages = imageFiles.map(f => f.name);
         originalOrder = [...currentImages];
 
+        const cards = [];
+        const imgPromises = [];
+
         currentImages.forEach((filename, idx) => {
             const card = createImageCard(filename, idx);
-            grid.appendChild(card);
+            cards.push(card);
+            
+            const img = card.querySelector('img');
+            imgPromises.push(new Promise(resolve => {
+                if (!img) return resolve();
+                if (img.complete) return resolve();
+                img.onload = resolve;
+                img.onerror = resolve;
+            }));
         });
+
+        // Wait for all images to proactively fetch from Supabase
+        await Promise.all(imgPromises);
+
+        cards.forEach(card => grid.appendChild(card));
 
         log(`Loaded ${currentImages.length} images.`, 'ok');
 
