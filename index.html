@@ -434,12 +434,21 @@
     <span class="footer-copy" id="footer-copy">© 2025 Kebab O'Clock. All rights reserved.</span>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-    const REPO   = 'kebaboclock/kebaboclock';
-    const BRANCH = 'main';
-    const IMAGE_DIR = 'imagesdep';
+    const SUPABASE_URL = 'https://kzcjifysttwzgqwpppvh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6Y2ppZnlzdHR3emdxd3BwcHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NjU1NzksImV4cCI6MjA5MTM0MTU3OX0.ApO28hONlNHYn3tF6e0f59txNc_TcK8gID4hsYMhTX8';
+    const BUCKET = 'images';
+    const IMAGE_FOLDER = 'menu';
 
-    // Default site config — used if site-config.json doesn't exist yet
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function getPublicUrl(path) {
+        const { data } = sb.storage.from(BUCKET).getPublicUrl(path);
+        return data.publicUrl + '?t=' + Date.now();
+    }
+
+    // Default site config
     const DEFAULT_CONFIG = {
         ticker: "HALAL CERTIFIED • OPEN 12PM – 2AM EVERY DAY • 07438 772056 • 476 GREAT WEST ROAD, HOUNSLOW TW5 0TA • GRILLED • SMASHED • SHAWARMA • WRAPS • BIRYANI",
         address: "476 Great West Road\nHounslow, TW5 0TA",
@@ -474,7 +483,6 @@
     function applyConfig(cfg) {
         // Ticker
         const tickerText = cfg.ticker || DEFAULT_CONFIG.ticker;
-        // Split by bullet/separator and build ticker HTML — duplicate for seamless loop
         const tickerHtml = `${tickerText} <span class="sep">•</span> ${tickerText} <span class="sep">•</span>`;
         const track = document.getElementById('ticker-track');
         if (track) track.innerHTML = tickerHtml;
@@ -534,13 +542,17 @@
         }
     }
 
-    // ── Load site config from GitHub ──
+    // ── Load site config from Supabase ──
     async function loadSiteConfig() {
         try {
-            const res = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/site-config.json?t=${Date.now()}`);
-            if (res.ok) {
-                const cfg = await res.json();
-                applyConfig(cfg);
+            const { data, error } = await sb
+                .from('site_config')
+                .select('config')
+                .eq('id', 'main')
+                .single();
+
+            if (!error && data?.config && Object.keys(data.config).length > 0) {
+                applyConfig({ ...DEFAULT_CONFIG, ...data.config });
             } else {
                 applyConfig(DEFAULT_CONFIG);
             }
@@ -550,23 +562,35 @@
     }
 
     // ── Logo ──
-    function loadLogo() {
+    async function loadLogo() {
         const logoEl = document.getElementById('header-logo');
-        const customLogoUrl = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${IMAGE_DIR}/logo.png?t=${Date.now()}`;
-
         totalAssets++;
 
-        const testImg = new Image();
-        testImg.onload = () => {
-            logoEl.src = customLogoUrl;
-            assetLoaded();
-        };
-        testImg.onerror = () => {
+        try {
+            const { data } = await sb.storage.from(BUCKET).list('', { limit: 100 });
+            const logoFile = data?.find(f => f.name === 'logo.png');
+            if (logoFile) {
+                const testImg = new Image();
+                testImg.onload = () => {
+                    logoEl.src = getPublicUrl('logo.png');
+                    assetLoaded();
+                };
+                testImg.onerror = () => {
+                    logoEl.src = 'Logo.png';
+                    logoEl.onload = assetLoaded;
+                    logoEl.onerror = assetError;
+                };
+                testImg.src = getPublicUrl('logo.png');
+            } else {
+                logoEl.src = 'Logo.png';
+                logoEl.onload = assetLoaded;
+                logoEl.onerror = assetError;
+            }
+        } catch {
             logoEl.src = 'Logo.png';
             logoEl.onload = assetLoaded;
             logoEl.onerror = assetError;
-        };
-        testImg.src = customLogoUrl;
+        }
     }
 
     // ── Preload background images ──
@@ -581,26 +605,33 @@
         });
     }
 
-    // ── Load menu images from imagesdep/ via GitHub directory listing ──
+    // ── Load menu images from Supabase Storage ──
     async function loadMenuImages() {
         const grid = document.getElementById('menu-image-grid');
 
         try {
+            // Load order from DB
             let orderedFiles = null;
             try {
-                const orderRes = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/${IMAGE_DIR}/order.json?t=${Date.now()}`);
-                if (orderRes.ok) {
-                    orderedFiles = await orderRes.json();
+                const { data: orderData } = await sb
+                    .from('image_order')
+                    .select('file_order')
+                    .eq('id', 'main')
+                    .single();
+                if (orderData?.file_order?.length > 0) {
+                    orderedFiles = orderData.file_order;
                 }
-            } catch(e) { /* no order.json */ }
+            } catch(e) { /* no order */ }
 
-            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${IMAGE_DIR}?ref=${BRANCH}`);
-            if (!res.ok) throw new Error('Could not load images');
+            // List images from storage
+            const { data: files, error } = await sb.storage
+                .from(BUCKET)
+                .list(IMAGE_FOLDER, { limit: 500 });
 
-            const files = await res.json();
+            if (error) throw new Error(error.message);
 
-            let imageFiles = files.filter(f =>
-                f.type === 'file' &&
+            let imageFiles = (files || []).filter(f =>
+                f.name &&
                 /\.(png|jpg|jpeg|webp|gif)$/i.test(f.name) &&
                 f.name.toLowerCase() !== 'logo.png'
             );
@@ -629,7 +660,7 @@
                 panel.className = 'menu-panel';
 
                 const img = document.createElement('img');
-                img.src = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${IMAGE_DIR}/${f.name}?t=${Date.now()}`;
+                img.src = getPublicUrl(`${IMAGE_FOLDER}/${f.name}`);
                 img.alt = f.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
                 img.onload = assetLoaded;
                 img.onerror = () => {
@@ -647,43 +678,16 @@
     }
 
     async function loadFallbackImages(grid) {
-        const menuImages = [
-            { file: 'menu-grilled-tastic.png',   label: 'Grilled-Tastic'  },
-            { file: 'menu-beefy-tastic.png',     label: 'Beefy-Tastic'    },
-            { file: 'menu-nashville-fire.png',   label: 'Nashville-Fire'  },
-            { file: 'menu-wrap-tastic.png',      label: 'Wrap-Tastic'     },
-            { file: 'menu-chicken-chips.png',    label: 'Chicken & Chips' },
-            { file: 'menu-don-shawarma.png',     label: 'Don-Shawarma'    },
-            { file: 'menu-koc-biryani.png',      label: 'KOC Biryani'     },
-            { file: 'menu-rice-box.png',         label: 'Rice Box'        },
-        ];
-
-        menuImages.forEach(({ file, label }) => {
-            totalAssets++;
-            const panel = document.createElement('div');
-            panel.className = 'menu-panel';
-
-            const img = document.createElement('img');
-            img.src = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${file}`;
-            img.alt = label;
-            img.onload = assetLoaded;
-            img.onerror = () => {
-                panel.style.display = 'none';
-                assetError();
-            };
-
-            panel.appendChild(img);
-            grid.appendChild(panel);
-        });
+        // No fallback images needed — empty grid is fine
+        grid.innerHTML = '<p style="text-align:center;color:#6b7280;grid-column:1/-1;padding:2rem;">Menu images coming soon!</p>';
     }
 
     // ── Initialize ──
     async function init() {
-        // Load config first (fast, no asset counting)
         await loadSiteConfig();
 
         preloadBackgrounds();
-        loadLogo();
+        await loadLogo();
         await loadMenuImages();
 
         // Safety timeout: force remove preloader after 12s
