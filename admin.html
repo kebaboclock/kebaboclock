@@ -6,6 +6,7 @@
     <title>KOC Admin – Image Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -693,24 +694,21 @@
 
     <!-- ── AUTH ── -->
     <div class="auth-card">
-        <h2><i class="fas fa-key"></i> GitHub Authentication</h2>
+        <h2><i class="fas fa-database"></i> Supabase Authentication</h2>
         <p>
-            Enter a <strong>fine-grained personal access token</strong> scoped to the
-            <code>kebaboclock/kebaboclock</code> repo with <strong>Contents: Read &amp; Write</strong>
-            permission.
+            Sign in with your admin credentials to manage content and images.
         </p>
-        <div class="input-row">
-            <input type="password" id="token-input" placeholder="github_pat_…" autocomplete="off" spellcheck="false">
-            <button class="btn" id="connect-btn" onclick="connectGitHub()">
-                <i class="fas fa-plug"></i> Connect
-            </button>
-            <button class="btn btn-danger btn-sm" id="disconnect-btn" onclick="disconnect()" style="display:none">
-                <i class="fas fa-times"></i> Disconnect
+        <div class="input-row" id="login-form">
+            <input type="email" id="auth-email" placeholder="Email Address">
+            <input type="password" id="auth-password" placeholder="Password">
+            <button class="btn" id="connect-btn" onclick="connectSupabase()">
+                <i class="fas fa-sign-in-alt"></i> Sign In
             </button>
         </div>
-        <div class="checkbox-row">
-            <input type="checkbox" id="remember-token" checked>
-            <label for="remember-token">Remember token in this browser</label>
+        <div class="input-row" id="logout-form" style="display:none">
+            <button class="btn btn-danger btn-sm" id="disconnect-btn" onclick="disconnect()">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+            </button>
         </div>
         <p id="auth-hint" style="margin-top:.75rem;font-size:.8rem;"></p>
     </div>
@@ -724,7 +722,7 @@
         <div class="section-title"><i class="fas fa-edit" style="color:var(--orange)"></i> Site Content</div>
 
         <p style="color:var(--muted);font-size:.85rem;margin-bottom:1.25rem;">
-            Edit any details below. When you're done making <em>all</em> your changes, hit <strong>Push Changes</strong> once — this writes a single commit so you don't hammer Vercel with reloads.
+            Edit any details below. When you're done making <em>all</em> your changes, hit <strong>Save Changes</strong> once.
         </p>
 
         <!-- TICKER -->
@@ -797,7 +795,7 @@
             <img class="logo-preview" id="logo-preview" src="Logo.png" alt="Current Logo">
             <div class="logo-upload-info">
                 <h3>Upload Custom Logo</h3>
-                <p>Uploads to <code>imagesdep/logo.png</code>. The public site will use this logo if available.</p>
+                <p>Uploads to Supabase Storage. The public site will use this logo if available.</p>
                 <div class="logo-drop-zone" id="logo-drop-zone">
                     <input type="file" accept="image/*" onchange="handleLogoSelect(this)">
                     <i class="fas fa-cloud-upload-alt"></i>
@@ -817,7 +815,7 @@
         <div class="section-title"><i class="fas fa-cloud-upload-alt" style="color:var(--orange)"></i> Upload Images</div>
         <div class="bulk-upload-card">
             <h3>Bulk Upload Menu Images</h3>
-            <p>Select or drag multiple images at once. They will all be uploaded to the <code>imagesdep</code> folder.</p>
+            <p>Select or drag multiple images at once. They will all be uploaded to Supabase Storage.</p>
             <div class="bulk-drop-zone" id="bulk-drop-zone">
                 <input type="file" accept="image/*" multiple onchange="handleBulkFiles(this.files)">
                 <i class="fas fa-images"></i>
@@ -846,7 +844,7 @@
             </button>
         </div>
         <p style="color:var(--muted); font-size:.85rem; margin-bottom:1rem;">
-            Drag and drop cards to reorder. Changes are staged locally — hit <strong>Save Order</strong> to write to GitHub once.
+            Drag and drop cards to reorder. Changes are staged locally — hit <strong>Save Order</strong> to save to Supabase.
         </p>
 
         <!-- Inline save-order bar (no longer fixed/floating) -->
@@ -874,7 +872,7 @@
 <div class="push-bar" id="push-bar">
     <span class="bar-text"><i class="fas fa-exclamation-circle" style="color:var(--yellow)"></i> You have unsaved site content changes</span>
     <button class="btn btn-green" id="push-btn" onclick="pushAllChanges()">
-        <i class="fas fa-cloud-upload-alt"></i> Push Changes
+        <i class="fas fa-save"></i> Save Changes
     </button>
     <button class="btn btn-outline btn-sm" onclick="revertContentChanges()">
         <i class="fas fa-undo"></i> Revert
@@ -883,12 +881,13 @@
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
-//  CONFIGURATION
+//  SUPABASE CONFIGURATION
 // ─────────────────────────────────────────────────────────────────────────────
-const REPO       = 'kebaboclock/kebaboclock';
-const BRANCH     = 'main';
-const IMAGE_DIR  = 'imagesdep';
-const CONFIG_FILE = 'site-config.json';
+const SUPABASE_URL = 'https://kzcjifysttwzgqwpppvh.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6Y2ppZnlzdHR3emdxd3BwcHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NjU1NzksImV4cCI6MjA5MTM0MTU3OX0.ApO28hONlNHYn3tF6e0f59txNc_TcK8gID4hsYMhTX8';
+const BUCKET = 'images';
+const IMAGE_FOLDER = 'menu';    // folder inside the bucket for menu images
+const LOGO_PATH = 'logo.png';   // logo stored at root of bucket
 
 // Default config (fallback if no site-config.json exists yet)
 const DEFAULT_CONFIG = {
@@ -907,17 +906,19 @@ const DEFAULT_CONFIG = {
 // ─────────────────────────────────────────────────────────────────────────────
 //  STATE
 // ─────────────────────────────────────────────────────────────────────────────
-let TOKEN          = '';
-let fileSHAs       = {};
-let currentImages  = [];
-let originalOrder  = [];
-let stagedFiles    = [];
-let pendingLogo    = null;
+let supabase      = null;
+let connected     = false;
+let currentImages = [];
+let originalOrder = [];
+let stagedFiles   = [];
+let pendingLogo   = null;
 
-// Loaded config from GitHub (used for revert)
-let loadedConfig   = { ...DEFAULT_CONFIG };
-// Whether the content form fields have unsaved changes
-let contentDirty   = false;
+// Map of filename -> local blob URL for replaced images.
+let localPreviews = {};
+
+// Loaded config from Supabase (used for revert)
+let loadedConfig  = { ...DEFAULT_CONFIG };
+let contentDirty  = false;
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  TOAST
@@ -944,171 +945,121 @@ function log(msg, cls = 'inf') {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  GITHUB API HELPERS
+//  SUPABASE HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
-async function ghFetch(path, options = {}) {
-    const url = `https://api.github.com/repos/${REPO}/${path}`;
-    const res = await fetch(url, {
-        ...options,
-        headers: {
-            'Authorization': `Bearer ${TOKEN}`,
-            'Accept': 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28',
-            ...(options.headers || {}),
-        }
-    });
-    return res;
+function getPublicUrl(path) {
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+    // bust cache
+    return data.publicUrl + '?t=' + Date.now();
 }
 
-async function getFileSHA(filepath) {
-    try {
-        const res  = await ghFetch(`contents/${filepath}?ref=${BRANCH}`);
-        if (!res.ok) return null;
-        const data = await res.json();
-        return data.sha || null;
-    } catch { return null; }
-}
-
-async function uploadFile(filepath, base64Content, message) {
-    // Use cached SHA if we have it; only hit the API if we don't.
-    // This avoids the "does not match" error caused by re-fetching a stale SHA
-    // when GitHub's metadata hasn't propagated yet after a recent write.
-    let sha = fileSHAs[filepath] ?? await getFileSHA(filepath);
-
-    const body = { message, content: base64Content, branch: BRANCH };
-    if (sha) body.sha = sha;
-
-    let res = await ghFetch(`contents/${filepath}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-    });
-
-    // If GitHub returns 409 Conflict (SHA mismatch), the cache is stale —
-    // clear it, fetch the real SHA, and retry once.
-    if (res.status === 409 || res.status === 422) {
-        delete fileSHAs[filepath];
-        sha = await getFileSHA(filepath);
-        const retryBody = { message, content: base64Content, branch: BRANCH };
-        if (sha) retryBody.sha = sha;
-        res = await ghFetch(`contents/${filepath}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(retryBody),
-        });
-    }
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Upload failed');
-    if (data.content && data.content.sha) {
-        fileSHAs[filepath] = data.content.sha;
-    }
-    return data;
-}
-
-async function deleteFile(filepath, message) {
-    const sha = fileSHAs[filepath] || await getFileSHA(filepath);
-    if (!sha) throw new Error('File not found');
-
-    const res = await ghFetch(`contents/${filepath}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, sha, branch: BRANCH }),
-    });
-    if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Delete failed');
-    }
-    delete fileSHAs[filepath];
-}
-
-function rawUrl(filepath) {
-    return `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${filepath}?t=${Date.now()}`;
+function menuPath(filename) {
+    return `${IMAGE_FOLDER}/${filename}`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  AUTH
+//  AUTH / CONNECT
 // ─────────────────────────────────────────────────────────────────────────────
-async function connectGitHub() {
-    const input = document.getElementById('token-input');
-    const token = input.value.trim();
-    if (!token) { toast('Please enter a token.', 'error'); return; }
-
+async function connectSupabase(isAuto = false) {
     const btn = document.getElementById('connect-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spin"></span> Verifying…';
+    const emailInput = document.getElementById('auth-email');
+    const passInput = document.getElementById('auth-password');
 
-    TOKEN = token;
+    if (!supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spin"></span> ' + (isAuto ? 'Connecting…' : 'Signing In…');
+    }
 
     try {
-        const res = await fetch(`https://api.github.com/repos/${REPO}`, {
-            headers: { 'Authorization': `Bearer ${TOKEN}` }
-        });
-
-        if (res.status === 401) throw new Error('Invalid token — check permissions.');
-        if (res.status === 404) throw new Error('Repo not found — ensure token has access.');
-        if (!res.ok) throw new Error(`GitHub error: ${res.status}`);
-
-        if (document.getElementById('remember-token').checked) {
-            localStorage.setItem('koc_github_token', TOKEN);
+        if (!isAuto) {
+            const { error } = await supabase.auth.signInWithPassword({
+                email: emailInput.value,
+                password: passInput.value
+            });
+            if (error) throw new Error(error.message);
+        } else {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session) return; // No auto-connect possible
         }
 
+        connected = true;
         setConnected(true);
-        input.value = '';
-        toast('Connected to GitHub ✓', 'success');
-        log(`Connected to ${REPO}`, 'ok');
+        toast(isAuto ? 'Session Restored ✓' : 'Authenticated ✓', 'success');
+        log('Logged in to Supabase', 'ok');
         await refreshAll();
 
     } catch (err) {
-        TOKEN = '';
+        connected = false;
         setConnected(false);
-        toast(err.message, 'error');
-        log(err.message, 'err');
+        if (!isAuto) {
+            toast(err.message, 'error');
+            log(err.message, 'err');
+        }
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-plug"></i> Connect';
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+        }
     }
 }
 
-function disconnect() {
-    TOKEN = '';
-    fileSHAs = {};
+async function disconnect() {
+    if (supabase) {
+        await supabase.auth.signOut();
+    }
+    connected = false;
     currentImages = [];
     originalOrder = [];
     contentDirty = false;
-    localStorage.removeItem('koc_github_token');
+    Object.values(localPreviews).forEach(url => URL.revokeObjectURL(url));
+    localPreviews = {};
     setConnected(false);
     document.getElementById('image-grid').innerHTML = '';
     document.getElementById('manager-section').style.display = 'none';
     document.getElementById('save-order-bar').classList.remove('visible');
     document.getElementById('push-bar').classList.remove('visible');
-    log('Disconnected.', 'inf');
-    toast('Disconnected.', 'info');
+    
+    const emailInput = document.getElementById('auth-email');
+    const passInput = document.getElementById('auth-password');
+    if (emailInput) emailInput.value = '';
+    if (passInput) passInput.value = '';
+
+    log('Signed out.', 'inf');
+    toast('Signed out.', 'info');
 }
 
 function setConnected(ok) {
     const dot  = document.getElementById('status-dot');
     const text = document.getElementById('status-text');
-    const disc = document.getElementById('disconnect-btn');
+    const loginForm = document.getElementById('login-form');
+    const logoutForm = document.getElementById('logout-form');
 
-    dot.className  = `dot ${ok ? 'connected' : ''}`;
-    text.textContent = ok ? `Connected — ${REPO}` : 'Not connected';
-    disc.style.display = ok ? 'inline-block' : 'none';
-    document.getElementById('manager-section').style.display = ok ? 'block' : 'none';
+    if (dot) dot.className  = `dot ${ok ? 'connected' : ''}`;
+    if (text) text.textContent = ok ? 'Connected — Supabase' : 'Not connected';
+    
+    if (loginForm) loginForm.style.display = ok ? 'none' : 'flex';
+    if (logoutForm) logoutForm.style.display = ok ? 'flex' : 'none';
+    
+    const mgr = document.getElementById('manager-section');
+    if (mgr) mgr.style.display = ok ? 'block' : 'none';
 }
 
+// Auto-connect on page load
 async function autoConnect() {
-    const saved = localStorage.getItem('koc_github_token');
-    if (saved) {
-        document.getElementById('token-input').value = saved;
-        await connectGitHub();
-    }
+    await connectSupabase(true);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  REFRESH ALL
 // ─────────────────────────────────────────────────────────────────────────────
 async function refreshAll() {
+    Object.values(localPreviews).forEach(url => URL.revokeObjectURL(url));
+    localPreviews = {};
+
     await Promise.all([
         loadLogoPreview(),
         loadSiteConfig(),
@@ -1118,11 +1069,15 @@ async function refreshAll() {
 
 async function loadLogoPreview() {
     const preview = document.getElementById('logo-preview');
-    const sha = await getFileSHA(`${IMAGE_DIR}/logo.png`);
-    if (sha) {
-        fileSHAs[`${IMAGE_DIR}/logo.png`] = sha;
-        preview.src = rawUrl(`${IMAGE_DIR}/logo.png`);
-    } else {
+    try {
+        const { data } = await supabase.storage.from(BUCKET).list('', { limit: 100 });
+        const logoFile = data?.find(f => f.name === 'logo.png');
+        if (logoFile) {
+            preview.src = getPublicUrl(LOGO_PATH);
+        } else {
+            preview.src = 'Logo.png';
+        }
+    } catch {
         preview.src = 'Logo.png';
     }
 }
@@ -1131,20 +1086,26 @@ async function loadLogoPreview() {
 //  SITE CONFIG — load, populate form, push
 // ─────────────────────────────────────────────────────────────────────────────
 async function loadSiteConfig() {
-    log('Loading site-config.json…');
+    log('Loading site config…');
     try {
-        const res = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/${CONFIG_FILE}?t=${Date.now()}`);
-        if (res.ok) {
-            const cfg = await res.json();
-            loadedConfig = { ...DEFAULT_CONFIG, ...cfg };
-            log('site-config.json loaded ✓', 'ok');
+        const { data, error } = await supabase
+            .from('site_config')
+            .select('config')
+            .eq('id', 'main')
+            .single();
+
+        if (error) throw error;
+
+        if (data && data.config && Object.keys(data.config).length > 0) {
+            loadedConfig = { ...DEFAULT_CONFIG, ...data.config };
+            log('Site config loaded ✓', 'ok');
         } else {
             loadedConfig = { ...DEFAULT_CONFIG };
-            log('No site-config.json found — using defaults.', 'inf');
+            log('No saved config — using defaults.', 'inf');
         }
     } catch(e) {
         loadedConfig = { ...DEFAULT_CONFIG };
-        log('Could not load site-config.json — using defaults.', 'inf');
+        log('Could not load config — using defaults.', 'inf');
     }
     populateConfigForm(loadedConfig);
     contentDirty = false;
@@ -1208,27 +1169,29 @@ function revertContentChanges() {
 async function pushAllChanges() {
     const btn = document.getElementById('push-btn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spin"></span> Pushing…';
+    btn.innerHTML = '<span class="spin"></span> Saving…';
 
     const cfg = readConfigForm();
 
     try {
-        const json   = JSON.stringify(cfg, null, 2);
-        const base64 = btoa(unescape(encodeURIComponent(json)));
-        await uploadFile(CONFIG_FILE, base64, 'Update site config via admin panel');
+        const { error } = await supabase
+            .from('site_config')
+            .upsert({ id: 'main', config: cfg, updated_at: new Date().toISOString() });
+
+        if (error) throw error;
 
         loadedConfig = { ...cfg };
         contentDirty = false;
         updatePushBar();
 
-        toast('Site content pushed to GitHub ✓', 'success');
-        log('site-config.json updated.', 'ok');
+        toast('Site config saved ✓', 'success');
+        log('Site config updated.', 'ok');
     } catch (err) {
-        toast(`Push failed: ${err.message}`, 'error');
-        log(`Push error: ${err.message}`, 'err');
+        toast(`Save failed: ${err.message}`, 'error');
+        log(`Save error: ${err.message}`, 'err');
     } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Push Changes';
+        btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
     }
 }
 
@@ -1238,28 +1201,33 @@ async function pushAllChanges() {
 async function buildImageGrid() {
     const grid = document.getElementById('image-grid');
     grid.innerHTML = '';
-    log('Loading images from imagesdep…');
+    log('Loading images from Supabase Storage…');
 
     try {
-        const res = await ghFetch(`contents/${IMAGE_DIR}?ref=${BRANCH}`);
-        if (!res.ok) throw new Error('Could not list imagesdep folder');
+        const { data: files, error } = await supabase.storage
+            .from(BUCKET)
+            .list(IMAGE_FOLDER, { limit: 500 });
 
-        const files = await res.json();
+        if (error) throw new Error(error.message);
 
-        let imageFiles = files.filter(f =>
-            f.type === 'file' &&
+        let imageFiles = (files || []).filter(f =>
+            !f.id?.startsWith('.') &&
+            f.name &&
             /\.(png|jpg|jpeg|webp|gif)$/i.test(f.name) &&
             f.name.toLowerCase() !== 'logo.png'
         );
 
-        imageFiles.forEach(f => { fileSHAs[`${IMAGE_DIR}/${f.name}`] = f.sha; });
-        const orderFile = files.find(f => f.name === 'order.json');
-        if (orderFile) fileSHAs[`${IMAGE_DIR}/order.json`] = orderFile.sha;
-
+        // Load saved order from DB
         let orderedNames = null;
         try {
-            const orderRes = await fetch(rawUrl(`${IMAGE_DIR}/order.json`));
-            if (orderRes.ok) orderedNames = await orderRes.json();
+            const { data: orderData } = await supabase
+                .from('image_order')
+                .select('file_order')
+                .eq('id', 'main')
+                .single();
+            if (orderData?.file_order?.length > 0) {
+                orderedNames = orderData.file_order;
+            }
         } catch(e) { /* ignored */ }
 
         if (orderedNames && Array.isArray(orderedNames)) {
@@ -1286,13 +1254,15 @@ async function buildImageGrid() {
         log(`Loaded ${currentImages.length} images.`, 'ok');
 
     } catch (err) {
-        log('imagesdep folder is empty or not accessible. Upload images to get started.', 'inf');
+        log('No images found. Upload images to get started.', 'inf');
     }
 }
 
 function createImageCard(filename, index) {
-    const filepath = `${IMAGE_DIR}/${filename}`;
+    const filepath = menuPath(filename);
     const label = filename.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+
+    const imgSrc = localPreviews[filename] || getPublicUrl(filepath);
 
     const card = document.createElement('div');
     card.className = 'image-card';
@@ -1303,7 +1273,7 @@ function createImageCard(filename, index) {
 
     card.innerHTML = `
         <div class="thumb-wrap">
-            <img src="${rawUrl(filepath)}" alt="${label}">
+            <img src="${imgSrc}" alt="${label}">
             <span class="card-order-num">#${index + 1}</span>
             <div class="card-actions-overlay">
                 <button class="card-action-btn replace-btn" title="Replace">
@@ -1321,7 +1291,6 @@ function createImageCard(filename, index) {
         </div>
     `;
 
-    // Replace button — stops propagation so drag doesn't interfere
     const replaceBtn = card.querySelector('.replace-btn');
     const fileInput  = card.querySelector(`#${safeId}`);
 
@@ -1334,7 +1303,6 @@ function createImageCard(filename, index) {
         if (fileInput.files[0]) handleReplace(filename, fileInput);
     });
 
-    // Delete button
     card.querySelector('.delete-btn').addEventListener('click', e => {
         e.stopPropagation();
         deleteImage(filename);
@@ -1412,14 +1380,16 @@ async function saveOrder() {
     btn.innerHTML = '<span class="spin"></span> Saving…';
 
     try {
-        const orderJson = JSON.stringify(currentImages, null, 2);
-        const base64 = btoa(unescape(encodeURIComponent(orderJson)));
-        await uploadFile(`${IMAGE_DIR}/order.json`, base64, 'Update image order via admin panel');
+        const { error } = await supabase
+            .from('image_order')
+            .upsert({ id: 'main', file_order: currentImages, updated_at: new Date().toISOString() });
+
+        if (error) throw error;
 
         originalOrder = [...currentImages];
         document.getElementById('save-order-bar').classList.remove('visible');
         toast('Image order saved ✓', 'success');
-        log('Image order saved to order.json', 'ok');
+        log('Image order saved.', 'ok');
     } catch (err) {
         toast(`Failed to save order: ${err.message}`, 'error');
         log(`Error saving order: ${err.message}`, 'err');
@@ -1432,11 +1402,6 @@ async function saveOrder() {
 // ─────────────────────────────────────────────────────────────────────────────
 //  REPLACE SPECIFIC IMAGE
 // ─────────────────────────────────────────────────────────────────────────────
-function triggerReplace(filename) {
-    const input = document.getElementById(`replace-input-${filename}`);
-    if (input) input.click();
-}
-
 async function handleReplace(filename, input) {
     const file = input.files[0];
     if (!file) return;
@@ -1445,25 +1410,34 @@ async function handleReplace(filename, input) {
         return;
     }
 
-    const filepath = `${IMAGE_DIR}/${filename}`;
+    const filepath = menuPath(filename);
     log(`Replacing ${filename}…`);
 
     const localPreviewUrl = URL.createObjectURL(file);
+
+    if (localPreviews[filename]) {
+        URL.revokeObjectURL(localPreviews[filename]);
+    }
+    localPreviews[filename] = localPreviewUrl;
+
     const existingCard = document.querySelector(`.image-card[data-filename="${CSS.escape(filename)}"]`);
     const existingImg  = existingCard ? existingCard.querySelector('img') : null;
     if (existingImg) existingImg.src = localPreviewUrl;
 
     try {
-        const base64 = await fileToBase64(file);
-        await uploadFile(filepath, base64, `Replace ${filename} via admin panel`);
+        const { error } = await supabase.storage
+            .from(BUCKET)
+            .upload(filepath, file, { cacheControl: '3600', upsert: true });
+
+        if (error) throw error;
+
         toast(`${filename} replaced ✓`, 'success');
         log(`Replaced ${filename}`, 'ok');
-        // Keep the local blob URL — GitHub's CDN can take minutes to propagate,
-        // switching to rawUrl too soon would show the old image again.
 
     } catch (err) {
-        if (existingImg) existingImg.src = rawUrl(filepath);
+        delete localPreviews[filename];
         URL.revokeObjectURL(localPreviewUrl);
+        if (existingImg) existingImg.src = getPublicUrl(filepath);
         toast(`Replace failed: ${err.message}`, 'error');
         log(`Error replacing ${filename}: ${err.message}`, 'err');
     }
@@ -1475,20 +1449,32 @@ async function handleReplace(filename, input) {
 async function deleteImage(filename) {
     if (!confirm(`Delete "${filename}" permanently?`)) return;
 
-    const filepath = `${IMAGE_DIR}/${filename}`;
+    const filepath = menuPath(filename);
     log(`Deleting ${filename}…`);
 
     try {
-        await deleteFile(filepath, `Delete ${filename} via admin panel`);
+        const { error } = await supabase.storage
+            .from(BUCKET)
+            .remove([filepath]);
+
+        if (error) throw error;
+
         currentImages = currentImages.filter(f => f !== filename);
         originalOrder = originalOrder.filter(f => f !== filename);
+
+        if (localPreviews[filename]) {
+            URL.revokeObjectURL(localPreviews[filename]);
+            delete localPreviews[filename];
+        }
+
         renderGrid();
         checkOrderChanged();
 
+        // Update order in DB
         try {
-            const orderJson = JSON.stringify(currentImages, null, 2);
-            const base64 = btoa(unescape(encodeURIComponent(orderJson)));
-            await uploadFile(`${IMAGE_DIR}/order.json`, base64, 'Update order after delete');
+            await supabase
+                .from('image_order')
+                .upsert({ id: 'main', file_order: currentImages, updated_at: new Date().toISOString() });
         } catch(e) { /* not critical */ }
 
         toast(`${filename} deleted ✓`, 'success');
@@ -1513,22 +1499,25 @@ async function deleteAllImages() {
     let errors = 0;
     const total = currentImages.length;
 
-    for (const filename of [...currentImages]) {
-        try {
-            await deleteFile(`${IMAGE_DIR}/${filename}`, `Delete all: ${filename} via admin panel`);
-        } catch (err) {
-            errors++;
-            log(`Error deleting ${filename}: ${err.message}`, 'err');
-        }
+    // Delete in batches (Supabase supports batch delete)
+    const paths = currentImages.map(f => menuPath(f));
+    const { error } = await supabase.storage.from(BUCKET).remove(paths);
+    if (error) {
+        errors = total;
+        log(`Batch delete error: ${error.message}`, 'err');
     }
 
     currentImages = [];
     originalOrder = [];
 
+    Object.values(localPreviews).forEach(url => URL.revokeObjectURL(url));
+    localPreviews = {};
+
+    // Update order in DB
     try {
-        const orderJson = JSON.stringify(currentImages, null, 2);
-        const base64 = btoa(unescape(encodeURIComponent(orderJson)));
-        await uploadFile(`${IMAGE_DIR}/order.json`, base64, 'Update order after delete all');
+        await supabase
+            .from('image_order')
+            .upsert({ id: 'main', file_order: [], updated_at: new Date().toISOString() });
     } catch(e) { /* not critical */ }
 
     renderGrid();
@@ -1538,7 +1527,7 @@ async function deleteAllImages() {
         toast(`Successfully deleted all ${total} images ✓`, 'success');
         log(`Deleted all ${total} images`, 'ok');
     } else {
-        toast(`Deleted most images, ${errors} failed`, 'error');
+        toast(`Delete had errors`, 'error');
     }
 
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete All'; }
@@ -1573,12 +1562,16 @@ async function uploadLogo() {
     btn.innerHTML = '<span class="spin"></span> Uploading…';
 
     try {
-        const base64 = await fileToBase64(pendingLogo);
-        await uploadFile(`${IMAGE_DIR}/logo.png`, base64, 'Update logo via admin panel');
+        const { error } = await supabase.storage
+            .from(BUCKET)
+            .upload(LOGO_PATH, pendingLogo, { cacheControl: '3600', upsert: true });
+
+        if (error) throw error;
+
         toast('Logo uploaded ✓', 'success');
-        log('Logo uploaded to imagesdep/logo.png', 'ok');
+        log('Logo uploaded to Supabase Storage', 'ok');
         pendingLogo = null;
-        document.getElementById('logo-preview').src = rawUrl(`${IMAGE_DIR}/logo.png`);
+        document.getElementById('logo-preview').src = getPublicUrl(LOGO_PATH);
     } catch (err) {
         toast(`Logo upload failed: ${err.message}`, 'error');
         log(`Error uploading logo: ${err.message}`, 'err');
@@ -1654,9 +1647,12 @@ async function uploadAllStaged() {
 
     for (const file of stagedFiles) {
         try {
-            const base64   = await fileToBase64(file);
-            const filepath = `${IMAGE_DIR}/${file.name}`;
-            await uploadFile(filepath, base64, `Upload ${file.name} via admin panel`);
+            const filepath = menuPath(file.name);
+            const { error } = await supabase.storage
+                .from(BUCKET)
+                .upload(filepath, file, { cacheControl: '3600', upsert: true });
+
+            if (error) throw error;
 
             if (!currentImages.includes(file.name)) {
                 currentImages.push(file.name);
@@ -1672,10 +1668,11 @@ async function uploadAllStaged() {
         progressBar.style.width = `${(done / total) * 100}%`;
     }
 
+    // Save updated order
     try {
-        const orderJson = JSON.stringify(currentImages, null, 2);
-        const base64 = btoa(unescape(encodeURIComponent(orderJson)));
-        await uploadFile(`${IMAGE_DIR}/order.json`, base64, 'Update image order after bulk upload');
+        await supabase
+            .from('image_order')
+            .upsert({ id: 'main', file_order: currentImages, updated_at: new Date().toISOString() });
     } catch(e) { /* not critical */ }
 
     originalOrder = [...currentImages];
@@ -1695,18 +1692,6 @@ async function uploadAllStaged() {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-upload"></i> Upload All';
     setTimeout(() => { progressWrap.style.display = 'none'; }, 1500);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  UTILITY
-// ─────────────────────────────────────────────────────────────────────────────
-function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload  = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1732,13 +1717,6 @@ logoDrop.addEventListener('drop', e => {
         input.files = e.dataTransfer.files;
         handleLogoSelect(input);
     }
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  ENTER KEY on token input
-// ─────────────────────────────────────────────────────────────────────────────
-document.getElementById('token-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') connectGitHub();
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
