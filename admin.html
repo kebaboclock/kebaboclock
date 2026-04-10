@@ -906,7 +906,7 @@ const DEFAULT_CONFIG = {
 // ─────────────────────────────────────────────────────────────────────────────
 //  STATE
 // ─────────────────────────────────────────────────────────────────────────────
-let supabase      = null;
+let supabaseClient = null;
 let connected     = false;
 let currentImages = [];
 let originalOrder = [];
@@ -948,7 +948,7 @@ function log(msg, cls = 'inf') {
 //  SUPABASE HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 function getPublicUrl(path) {
-    const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+    const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
     // bust cache
     return data.publicUrl + '?t=' + Date.now();
 }
@@ -965,8 +965,8 @@ async function connectSupabase(isAuto = false) {
     const emailInput = document.getElementById('auth-email');
     const passInput = document.getElementById('auth-password');
 
-    if (!supabase) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (!supabaseClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
     if (btn) {
@@ -976,13 +976,13 @@ async function connectSupabase(isAuto = false) {
 
     try {
         if (!isAuto) {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { error } = await supabaseClient.auth.signInWithPassword({
                 email: emailInput.value,
                 password: passInput.value
             });
             if (error) throw new Error(error.message);
         } else {
-            const { data: { session }, error } = await supabase.auth.getSession();
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
             if (error || !session) return; // No auto-connect possible
         }
 
@@ -1008,8 +1008,8 @@ async function connectSupabase(isAuto = false) {
 }
 
 async function disconnect() {
-    if (supabase) {
-        await supabase.auth.signOut();
+    if (supabaseClient) {
+        await supabaseClient.auth.signOut();
     }
     connected = false;
     currentImages = [];
@@ -1070,7 +1070,7 @@ async function refreshAll() {
 async function loadLogoPreview() {
     const preview = document.getElementById('logo-preview');
     try {
-        const { data } = await supabase.storage.from(BUCKET).list('', { limit: 100 });
+        const { data } = await supabaseClient.storage.from(BUCKET).list('', { limit: 100 });
         const logoFile = data?.find(f => f.name === 'logo.png');
         if (logoFile) {
             preview.src = getPublicUrl(LOGO_PATH);
@@ -1204,7 +1204,7 @@ async function buildImageGrid() {
     log('Loading images from Supabase Storage…');
 
     try {
-        const { data: files, error } = await supabase.storage
+        const { data: files, error } = await supabaseClient.storage
             .from(BUCKET)
             .list(IMAGE_FOLDER, { limit: 500 });
 
@@ -1425,7 +1425,7 @@ async function handleReplace(filename, input) {
     if (existingImg) existingImg.src = localPreviewUrl;
 
     try {
-        const { error } = await supabase.storage
+        const { error } = await supabaseClient.storage
             .from(BUCKET)
             .upload(filepath, file, { cacheControl: '3600', upsert: true });
 
@@ -1453,7 +1453,7 @@ async function deleteImage(filename) {
     log(`Deleting ${filename}…`);
 
     try {
-        const { error } = await supabase.storage
+        const { error } = await supabaseClient.storage
             .from(BUCKET)
             .remove([filepath]);
 
@@ -1501,7 +1501,7 @@ async function deleteAllImages() {
 
     // Delete in batches (Supabase supports batch delete)
     const paths = currentImages.map(f => menuPath(f));
-    const { error } = await supabase.storage.from(BUCKET).remove(paths);
+    const { error } = await supabaseClient.storage.from(BUCKET).remove(paths);
     if (error) {
         errors = total;
         log(`Batch delete error: ${error.message}`, 'err');
@@ -1562,7 +1562,7 @@ async function uploadLogo() {
     btn.innerHTML = '<span class="spin"></span> Uploading…';
 
     try {
-        const { error } = await supabase.storage
+        const { error } = await supabaseClient.storage
             .from(BUCKET)
             .upload(LOGO_PATH, pendingLogo, { cacheControl: '3600', upsert: true });
 
@@ -1648,7 +1648,7 @@ async function uploadAllStaged() {
     for (const file of stagedFiles) {
         try {
             const filepath = menuPath(file.name);
-            const { error } = await supabase.storage
+            const { error } = await supabaseClient.storage
                 .from(BUCKET)
                 .upload(filepath, file, { cacheControl: '3600', upsert: true });
 
