@@ -466,17 +466,22 @@
     let totalAssets = 0;
     let loadedAssets = 0;
     let preloaderDone = false;
+    let allAssetsDiscovered = false;
 
     function assetLoaded() {
         loadedAssets++;
-        if (loadedAssets >= totalAssets && !preloaderDone) {
-            preloaderDone = true;
-            document.getElementById('preloader').classList.add('hidden');
-        }
+        checkPreloader();
     }
 
     function assetError() {
         assetLoaded();
+    }
+
+    function checkPreloader() {
+        if (allAssetsDiscovered && loadedAssets >= totalAssets && !preloaderDone) {
+            preloaderDone = true;
+            document.getElementById('preloader').classList.add('hidden');
+        }
     }
 
     // ── Apply site config to the page ──
@@ -690,6 +695,9 @@
         await loadLogo();
         await loadMenuImages();
 
+        allAssetsDiscovered = true;
+        checkPreloader();
+
         // Safety timeout: force remove preloader after 12s
         setTimeout(() => {
             if (!preloaderDone) {
@@ -697,11 +705,6 @@
                 document.getElementById('preloader').classList.add('hidden');
             }
         }, 12000);
-
-        if (totalAssets === 0) {
-            preloaderDone = true;
-            document.getElementById('preloader').classList.add('hidden');
-        }
     }
 
     init();
