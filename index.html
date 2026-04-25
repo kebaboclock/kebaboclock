@@ -377,7 +377,7 @@
             WHERE FLAVOUR
             <span>MEETS TIME</span>
         </h1>
-        <p>
+        <p id="hero-description">
             Experience authentic kebabs, burgers and shawarma crafted with passion.
             Fresh ingredients, bold flavours, and unbeatable taste — available every
             day from 12PM till 2AM.
@@ -451,6 +451,7 @@
     // Default site config
     const DEFAULT_CONFIG = {
         ticker: "HALAL CERTIFIED • OPEN 12PM – 2AM EVERY DAY • 07438 772056 • 476 GREAT WEST ROAD, HOUNSLOW TW5 0TA • GRILLED • SMASHED • SHAWARMA • WRAPS • BIRYANI",
+        heroDescription: "Experience authentic kebabs, burgers and shawarma crafted with passion.\nFresh ingredients, bold flavours, and unbeatable taste — available every day from 12PM till 2AM.",
         address: "476 Great West Road\nHounslow, TW5 0TA",
         phone: "07438 772056",
         hours: "Mon – Sun\n12PM til 2AM",
@@ -491,6 +492,12 @@
         const tickerHtml = `${tickerText} <span class="sep">•</span> ${tickerText} <span class="sep">•</span>`;
         const track = document.getElementById('ticker-track');
         if (track) track.innerHTML = tickerHtml;
+
+        // Hero description
+        const heroDesc = document.getElementById('hero-description');
+        if (heroDesc) {
+            heroDesc.innerHTML = (cfg.heroDescription || DEFAULT_CONFIG.heroDescription).replace(/\n/g, '<br>');
+        }
 
         // Contact cards
         const cards = document.getElementById('contact-cards');
