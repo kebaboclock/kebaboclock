@@ -735,6 +735,16 @@
             </div>
         </div>
 
+        <!-- HERO -->
+        <div class="content-card">
+            <h3><i class="fas fa-heading"></i> Main Description (Hero)</h3>
+            <p class="field-hint">This is the text shown on the main background image at the top of the site. Use a new line (Enter) where you want a line break.</p>
+            <div class="field-group">
+                <label>Description Text</label>
+                <textarea id="cfg-heroDescription" rows="4" placeholder="Experience authentic kebabs, burgers and shawarma crafted with passion..." oninput="markContentDirty()"></textarea>
+            </div>
+        </div>
+
         <!-- CONTACT -->
         <div class="content-card">
             <h3><i class="fas fa-map-marker-alt"></i> Contact & Location</h3>
@@ -892,6 +902,7 @@ const LOGO_PATH = 'logo.png';   // logo stored at root of bucket
 // Default config (fallback if no site-config.json exists yet)
 const DEFAULT_CONFIG = {
     ticker: "HALAL CERTIFIED • OPEN 12PM – 2AM EVERY DAY • 07438 772056 • 476 GREAT WEST ROAD, HOUNSLOW TW5 0TA • GRILLED • SMASHED • SHAWARMA • WRAPS • BIRYANI",
+    heroDescription: "Experience authentic kebabs, burgers and shawarma crafted with passion.\nFresh ingredients, bold flavours, and unbeatable taste — available every day from 12PM till 2AM.",
     address: "476 Great West Road\nHounslow, TW5 0TA",
     phone: "07438 772056",
     hours: "Mon – Sun\n12PM til 2AM",
@@ -1129,6 +1140,7 @@ function populateConfigForm(cfg) {
         if (el) el.value = val || '';
     };
     set('cfg-ticker',        cfg.ticker);
+    set('cfg-heroDescription', cfg.heroDescription);
     set('cfg-address',       cfg.address);
     set('cfg-mapsUrl',       cfg.mapsUrl);
     set('cfg-phone',         cfg.phone);
@@ -1144,6 +1156,7 @@ function readConfigForm() {
     const get = id => (document.getElementById(id)?.value || '').trim();
     return {
         ticker:        get('cfg-ticker'),
+        heroDescription: get('cfg-heroDescription'),
         address:       get('cfg-address'),
         mapsUrl:       get('cfg-mapsUrl'),
         phone:         get('cfg-phone'),
