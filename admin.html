@@ -1099,7 +1099,7 @@ async function loadLogoPreview() {
 async function loadSiteConfig() {
     log('Loading site config…');
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('site_config')
             .select('config')
             .eq('id', 'main')
@@ -1185,7 +1185,7 @@ async function pushAllChanges() {
     const cfg = readConfigForm();
 
     try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('site_config')
             .upsert({ id: 'main', config: cfg, updated_at: new Date().toISOString() });
 
@@ -1231,7 +1231,7 @@ async function buildImageGrid() {
         // Load saved order from DB
         let orderedNames = null;
         try {
-            const { data: orderData } = await supabase
+            const { data: orderData } = await supabaseClient
                 .from('image_order')
                 .select('file_order')
                 .eq('id', 'main')
@@ -1407,7 +1407,7 @@ async function saveOrder() {
     btn.innerHTML = '<span class="spin"></span> Saving…';
 
     try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('image_order')
             .upsert({ id: 'main', file_order: currentImages, updated_at: new Date().toISOString() });
 
@@ -1499,7 +1499,7 @@ async function deleteImage(filename) {
 
         // Update order in DB
         try {
-            await supabase
+            await supabaseClient
                 .from('image_order')
                 .upsert({ id: 'main', file_order: currentImages, updated_at: new Date().toISOString() });
         } catch(e) { /* not critical */ }
@@ -1542,7 +1542,7 @@ async function deleteAllImages() {
 
     // Update order in DB
     try {
-        await supabase
+        await supabaseClient
             .from('image_order')
             .upsert({ id: 'main', file_order: [], updated_at: new Date().toISOString() });
     } catch(e) { /* not critical */ }
@@ -1697,7 +1697,7 @@ async function uploadAllStaged() {
 
     // Save updated order
     try {
-        await supabase
+        await supabaseClient
             .from('image_order')
             .upsert({ id: 'main', file_order: currentImages, updated_at: new Date().toISOString() });
     } catch(e) { /* not critical */ }
