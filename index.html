@@ -346,6 +346,23 @@
         .footer-social { display: flex; gap: 1.25rem; }
         .footer-social a { color: #6b7280; font-size: 1.15rem; transition: color .2s; text-decoration: none; }
         .footer-social a:hover { color: var(--orange); }
+
+        /* ── DEV CREDIT ── */
+        .dev-credit {
+            width: 100%;
+            text-align: center;
+            padding-top: .75rem;
+            margin-top: .5rem;
+            border-top: 1px solid var(--border);
+        }
+        .dev-credit a {
+            color: #3a3a3a;
+            font-size: .7rem;
+            text-decoration: none;
+            letter-spacing: .2px;
+            transition: color .2s;
+        }
+        .dev-credit a:hover { color: #6b7280; }
     </style>
 </head>
 <body>
@@ -432,6 +449,9 @@
         <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
     </div>
     <span class="footer-copy" id="footer-copy">© 2025 Kebab O'Clock. All rights reserved.</span>
+    <div class="dev-credit">
+        <a href="https://portfolio-future-nine.vercel.app/" target="_blank" rel="noopener">Developed by Muhammad Haji</a>
+    </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
